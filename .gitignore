@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+dist/
+build/
+artifacts/
+config/adb_tunnel_monitor.local.json
+.DS_Store
+.idea/
+.codex_write_probe
+
+# Lucky Wheel template extraction intermediates (renamed 0.png..9.png may be committed)
+examples/lucky_wheel_templates/glyph_*.png
+examples/lucky_wheel_templates/_binarised_region.png

@@ -1,0 +1,1685 @@
+{
+  "default_language_tag": "en",
+  "sender": "Official Juli",
+  "country_routes": {
+    "AD": {
+      "language_tag": "es",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AF": {
+      "language_tag": "fa",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AL": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AQ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AT": {
+      "language_tag": "de",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AU": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AW": {
+      "language_tag": "nl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AX": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "AZ": {
+      "language_tag": "tr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BB": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BD": {
+      "language_tag": "bn",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BE": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BH": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BJ": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BL": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BQ": {
+      "language_tag": "nl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BV": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BW": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BY": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "BZ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CC": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CD": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CG": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CH": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CI": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CK": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CL": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CM": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CU": {
+      "language_tag": "es",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CV": {
+      "language_tag": "pt",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CW": {
+      "language_tag": "nl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CX": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CY": {
+      "language_tag": "el",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "CZ": {
+      "language_tag": "cs",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DE": {
+      "language_tag": "de",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DJ": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DK": {
+      "language_tag": "da",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "DZ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "EC": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "EE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "EG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "EH": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ER": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ES": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ET": {
+      "language_tag": "am",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FI": {
+      "language_tag": "fi",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FJ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FK": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FO": {
+      "language_tag": "da",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "FR": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GA": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GB": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GD": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GH": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GL": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GN": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GP": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GQ": {
+      "language_tag": "es",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GR": {
+      "language_tag": "el",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GU": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GW": {
+      "language_tag": "pt",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "GY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HK": {
+      "language_tag": "zh-Hant",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HT": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "HU": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ID": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IL": {
+      "language_tag": "he",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IQ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IR": {
+      "language_tag": "fa",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "IT": {
+      "language_tag": "it",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "JE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "JM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "JO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "JP": {
+      "language_tag": "ja",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KE": {
+      "language_tag": "sw",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KG": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KH": {
+      "language_tag": "km",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KM": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KP": {
+      "language_tag": "ko",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KR": {
+      "language_tag": "ko",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KW": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "KZ": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LA": {
+      "language_tag": "lo",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LB": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LC": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LI": {
+      "language_tag": "de",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LK": {
+      "language_tag": "si",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LU": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LV": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "LY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MC": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MD": {
+      "language_tag": "ro",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ME": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MG": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MH": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MK": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ML": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MM": {
+      "language_tag": "my",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MP": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MQ": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MR": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MU": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MV": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MW": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MX": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "MZ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NC": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NE": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NF": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NL": {
+      "language_tag": "nl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NO": {
+      "language_tag": "no",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NP": {
+      "language_tag": "ne",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NU": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "NZ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "OM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PH": {
+      "language_tag": "fil",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PK": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PL": {
+      "language_tag": "pl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PM": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PS": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PW": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "PY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "QA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "RE": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "RO": {
+      "language_tag": "ro",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "RS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "RU": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "RW": {
+      "language_tag": "sw",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SB": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SC": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SD": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SE": {
+      "language_tag": "sv",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SH": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SJ": {
+      "language_tag": "no",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SK": {
+      "language_tag": "cs",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SL": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SM": {
+      "language_tag": "it",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SN": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SO": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SR": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ST": {
+      "language_tag": "pt",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SV": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SX": {
+      "language_tag": "nl",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SY": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "SZ": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TC": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TD": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TF": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TG": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TH": {
+      "language_tag": "th",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TJ": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TK": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TL": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TM": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TN": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TO": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TR": {
+      "language_tag": "tr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TT": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TV": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TW": {
+      "language_tag": "zh-Hant",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "TZ": {
+      "language_tag": "sw",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "UA": {
+      "language_tag": "uk",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "UG": {
+      "language_tag": "sw",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "UM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "US": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "UY": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "UZ": {
+      "language_tag": "ru",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VA": {
+      "language_tag": "it",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VC": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VE": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VG": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VI": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VN": {
+      "language_tag": "vi",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "VU": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "WF": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "WS": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "YE": {
+      "language_tag": "ar",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "YT": {
+      "language_tag": "fr",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ZA": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ZM": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    },
+    "ZW": {
+      "language_tag": "en",
+      "alternatives": [
+        "en"
+      ]
+    }
+  },
+  "templates": {
+    "am": {
+      "language": "Amharic",
+      "greeting": "ሰላም! ከYago app ነኝ። agency/active user እንጋብዛለን። policy ከPoppo ይሻላል። ከመቀላቀልዎ በፊት official policy ይዩ። details ለማግኘት reply።",
+      "after_reply": "+w-app 8615960224799፣ policy እና special offer እልካለሁ"
+    },
+    "ar": {
+      "language": "Arabic",
+      "greeting": "مرحباً! أنا من Yago. ندعو الوكالات والنشطين. سياستنا أفضل من Poppo. راجع السياسة الرسمية قبل الانضمام. رد للتفاصيل.",
+      "after_reply": "+w-app 8615960224799، سأرسل سياستنا وعرضك الخاص"
+    },
+    "bn": {
+      "language": "Bengali",
+      "greeting": "Hi! Yago app থেকে। agency/active user invite। policy Poppo-র চেয়ে ভালো। join আগে official policy দেখুন। details পেতে reply।",
+      "after_reply": "+w-app 8615960224799, policy ও special offer পাঠাব"
+    },
+    "cs": {
+      "language": "Czech",
+      "greeting": "Ahoj! Jsem z Yago app. Zveme agentury a aktivní uživatele. Máme lepší podmínky než Poppo. Před vstupem ověř oficiální podmínky. Odpověz pro detaily.",
+      "after_reply": "+w-app 8615960224799, pošlu naše podmínky a tvou speciální nabídku"
+    },
+    "da": {
+      "language": "Danish",
+      "greeting": "Hej! Jeg er fra Yago app. Vi inviterer bureauer og aktive brugere. Vi har bedre vilkår end Poppo. Tjek den officielle politik før du deltager. Svar for detaljer.",
+      "after_reply": "+w-app 8615960224799, jeg sender vores politik og dit særtilbud"
+    },
+    "de": {
+      "language": "German",
+      "greeting": "Hi! Ich bin von der Yago App. Wir laden Agenturen und aktive Nutzer ein. Unsere Konditionen sind besser als bei Poppo. Prüfe sie vor dem Beitritt. Antworte für Details.",
+      "after_reply": "+w-app 8615960224799, ich sende unsere Konditionen und dein Sonderangebot"
+    },
+    "el": {
+      "language": "Greek",
+      "greeting": "Γεια! Από Yago app. Καλούμε agency/active users. Policy καλύτερη από Poppo. Έλεγξε official policy πριν μπεις. Reply για details.",
+      "after_reply": "+w-app 8615960224799, θα στείλω την πολιτική και την ειδική προσφορά σου"
+    },
+    "en": {
+      "language": "English",
+      "greeting": "Hi! I’m from Yago app. We invite agencies and active users to try our platform. Our policy is better than Poppo’s. Check the official policy before joining. Reply and I’ll send details.",
+      "after_reply": "+w-app 8615960224799, i will send you our policy and your special offer"
+    },
+    "es": {
+      "language": "Spanish",
+      "greeting": "¡Hola! Soy de Yago app. Invitamos agencias y usuarios activos. Nuestra política es mejor que la de Poppo. Revísala antes de unirte. Responde y enviaré detalles.",
+      "after_reply": "+w-app 8615960224799, enviaré nuestra política y tu oferta especial"
+    },
+    "fa": {
+      "language": "Persian",
+      "greeting": "Hi! از Yago app. دعوت agency/active user. policy بهتر از Poppo. قبل از join، official policy را ببین. برای details reply کن.",
+      "after_reply": "+w-app 8615960224799، سیاست و پیشنهاد ویژه‌ات را می‌فرستم"
+    },
+    "fi": {
+      "language": "Finnish",
+      "greeting": "Hei! Olen Yago appista. Kutsumme toimistoja ja aktiivisia käyttäjiä. Ehtomme ovat Poppoa paremmat. Tarkista viralliset ehdot ennen liittymistä. Vastaa, niin lähetän tiedot.",
+      "after_reply": "+w-app 8615960224799, lähetän ehtomme ja erikoistarjouksesi"
+    },
+    "fil": {
+      "language": "Filipino",
+      "greeting": "Hi! Taga-Yago app ako. Iniimbitahan namin ang agencies at active users. Mas maganda ang policy namin kaysa Poppo. I-check bago sumali. Mag-reply para sa details.",
+      "after_reply": "+w-app 8615960224799, ipapadala ko ang policy at special offer mo"
+    },
+    "fr": {
+      "language": "French",
+      "greeting": "Salut ! Je viens de Yago app. Nous invitons agences et utilisateurs actifs. Notre politique est meilleure que Poppo. Vérifiez-la avant de rejoindre. Répondez pour les détails.",
+      "after_reply": "+w-app 8615960224799, j’enverrai notre politique et votre offre spéciale"
+    },
+    "he": {
+      "language": "Hebrew",
+      "greeting": "Hi! מ-Yago app. מזמינים agency/active users. policy טובה מ-Poppo. בדקו official policy לפני הצטרפות. Reply לקבלת details.",
+      "after_reply": "+w-app 8615960224799, אשלח את המדיניות וההצעה המיוחדת שלך"
+    },
+    "hi-Latn": {
+      "language": "Hinglish",
+      "greeting": "Hi! Main Yago app se hoon. Hum agencies aur active users ko bula rahe hain. Hamari policy Poppo se better hai. Join se pehle official policy check karo. Details ke liye reply karo.",
+      "after_reply": "+w-app 8615960224799, main policy aur aapka special offer bhejunga"
+    },
+    "id": {
+      "language": "Indonesian",
+      "greeting": "Hai! Saya dari Yago app. Kami mengundang agensi dan pengguna aktif. Kebijakan kami lebih baik dari Poppo. Cek kebijakan resmi sebelum bergabung. Balas untuk detail.",
+      "after_reply": "+w-app 8615960224799, saya kirim kebijakan dan penawaran khususmu"
+    },
+    "it": {
+      "language": "Italian",
+      "greeting": "Ciao! Sono di Yago app. Invitiamo agenzie e utenti attivi. La nostra politica è migliore di Poppo. Controlla quella ufficiale prima di unirti. Rispondi per i dettagli.",
+      "after_reply": "+w-app 8615960224799, invierò la politica e la tua offerta speciale"
+    },
+    "ja": {
+      "language": "Japanese",
+      "greeting": "こんにちは！Yago appです。agencyとactive userを招待中。Poppoより良いpolicyです。参加前に公式policyを確認できます。返信で詳細を送ります。",
+      "after_reply": "+w-app 8615960224799、policyと特別offerを送ります"
+    },
+    "km": {
+      "language": "Khmer",
+      "greeting": "Hi! ពី Yago app។ invite agency/active user។ policy ល្អជាង Poppo។ check official policy មុនចូល។ reply យក details។",
+      "after_reply": "+w-app 8615960224799 ខ្ញុំនឹងផ្ញើ policy និង special offer"
+    },
+    "ko": {
+      "language": "Korean",
+      "greeting": "Hi! Yago app입니다. agency/active user 초대. policy는 Poppo보다 좋습니다. 가입 전 official policy 확인. reply하면 details 전송.",
+      "after_reply": "+w-app 8615960224799, policy와 특별 offer를 보내드릴게요"
+    },
+    "lo": {
+      "language": "Lao",
+      "greeting": "ສະບາຍດີ! ຈາກ Yago app. ເຊີນ agency/active user. policy ດີກວ່າ Poppo. ເບິ່ງ official policy ກ່ອນເຂົ້າ. reply ຮັບ details.",
+      "after_reply": "+w-app 8615960224799, ຈະສົ່ງ policy ແລະ special offer"
+    },
+    "ms": {
+      "language": "Malay",
+      "greeting": "Hai! Saya dari Yago app. Kami menjemput agensi dan pengguna aktif. Polisi kami lebih baik daripada Poppo. Semak polisi rasmi sebelum sertai. Balas untuk butiran.",
+      "after_reply": "+w-app 8615960224799, saya hantar polisi dan tawaran khas anda"
+    },
+    "my": {
+      "language": "Burmese",
+      "greeting": "Yago app မှပါ။ agency/active user invite။ policy က Poppo ထက်ကောင်း။ join မတိုင်ခင် official policy စစ်။ details အတွက် reply။",
+      "after_reply": "+w-app 8615960224799၊ policy နဲ့ special offer ပို့မယ်"
+    },
+    "ne": {
+      "language": "Nepali",
+      "greeting": "Yago बाट। agency/active user invite। policy Poppo भन्दा राम्रो। join अघि official policy हेर्नुहोस्। details का लागि reply।",
+      "after_reply": "+w-app 8615960224799, policy र special offer पठाउँछु"
+    },
+    "nl": {
+      "language": "Dutch",
+      "greeting": "Hi! Ik ben van Yago app. We nodigen bureaus en actieve gebruikers uit. Ons beleid is beter dan Poppo. Bekijk het officiële beleid voor deelname. Antwoord voor details.",
+      "after_reply": "+w-app 8615960224799, ik stuur ons beleid en jouw speciale aanbod"
+    },
+    "no": {
+      "language": "Norwegian",
+      "greeting": "Hei! Jeg er fra Yago app. Vi inviterer byråer og aktive brukere. Vi har bedre vilkår enn Poppo. Sjekk offisiell policy før du blir med. Svar for detaljer.",
+      "after_reply": "+w-app 8615960224799, jeg sender vår policy og ditt spesialtilbud"
+    },
+    "pl": {
+      "language": "Polish",
+      "greeting": "Cześć! Jestem z Yago app. Zapraszamy agencje i aktywnych użytkowników. Mamy lepsze warunki niż Poppo. Sprawdź oficjalne zasady przed dołączeniem. Odpisz po szczegóły.",
+      "after_reply": "+w-app 8615960224799, wyślę zasady i Twoją specjalną ofertę"
+    },
+    "pt": {
+      "language": "Portuguese",
+      "greeting": "Oi! Sou do Yago app. Convidamos agências e usuários ativos. Nossa política é melhor que a do Poppo. Confira a política oficial antes de entrar. Responda para detalhes.",
+      "after_reply": "+w-app 8615960224799, enviarei nossa política e sua oferta especial"
+    },
+    "ro": {
+      "language": "Romanian",
+      "greeting": "Salut! Sunt de la Yago app. Invităm agenții și utilizatori activi. Politica noastră e mai bună decât Poppo. Verific-o înainte de înscriere. Răspunde pentru detalii.",
+      "after_reply": "+w-app 8615960224799, trimit politica și oferta ta specială"
+    },
+    "ru": {
+      "language": "Russian",
+      "greeting": "Привет! Я из Yago. Agency и active users приглашаются. Policy лучше Poppo. Проверь official policy до входа. Reply — пришлю details.",
+      "after_reply": "+w-app 8615960224799, пришлю условия и твоё спецпредложение"
+    },
+    "si": {
+      "language": "Sinhala",
+      "greeting": "Hi! Yago app වෙතින්. agency/active user invite. policy Poppoට වඩා හොඳයි. join පෙර official policy බලන්න. details සඳහා reply.",
+      "after_reply": "+w-app 8615960224799, policy සහ special offer එවන්නම්"
+    },
+    "sv": {
+      "language": "Swedish",
+      "greeting": "Hej! Jag är från Yago app. Vi bjuder in agenturer och aktiva användare. Våra villkor är bättre än Poppo. Kontrollera policyn innan du går med. Svara för detaljer.",
+      "after_reply": "+w-app 8615960224799, jag skickar policyn och ditt specialerbjudande"
+    },
+    "sw": {
+      "language": "Swahili",
+      "greeting": "Hi! Ninatoka Yago app. Tunaalika agencies na active users. Policy yetu ni bora kuliko Poppo. Angalia official policy kabla ya kujiunga. Reply kwa details.",
+      "after_reply": "+w-app 8615960224799, nitatuma policy na special offer yako"
+    },
+    "th": {
+      "language": "Thai",
+      "greeting": "Hi! จาก Yago app เชิญ agency/active user policy ดีกว่า Poppo เช็ก official policy ก่อนเข้าร่วม reply รับ details",
+      "after_reply": "+w-app 8615960224799 จะส่ง policy และ special offer ให้คุณ"
+    },
+    "tr": {
+      "language": "Turkish",
+      "greeting": "Merhaba! Yago app’tenim. Ajansları ve aktif kullanıcıları davet ediyoruz. Politikamız Poppo’dan daha iyi. Katılmadan önce resmi politikayı incele. Detay için yanıtla.",
+      "after_reply": "+w-app 8615960224799, politikamızı ve özel teklifini göndereceğim"
+    },
+    "uk": {
+      "language": "Ukrainian",
+      "greeting": "Привіт! Я з Yago. Запрошуємо agency/active users. Policy краща за Poppo. Перевір official policy до вступу. Reply — надішлю details.",
+      "after_reply": "+w-app 8615960224799, надішлю умови й твою спецпропозицію"
+    },
+    "ur": {
+      "language": "Urdu",
+      "greeting": "Hi! Yago app سے۔ agency/active user invite۔ policy Poppo سے بہتر۔ join سے پہلے official policy دیکھیں۔ details کے لیے reply۔",
+      "after_reply": "+w-app 8615960224799، policy اور special offer بھیجوں گا"
+    },
+    "vi": {
+      "language": "Vietnamese",
+      "greeting": "Chào! Tôi từ Yago app. Mời agency và active user. Chính sách tốt hơn Poppo. Xem official policy trước khi tham gia. Trả lời để nhận chi tiết.",
+      "after_reply": "+w-app 8615960224799, tôi sẽ gửi chính sách và ưu đãi riêng của bạn"
+    },
+    "zh-Hant": {
+      "language": "Traditional Chinese",
+      "greeting": "嗨！我是 Yago app 的工作人員。我們邀請公會和活躍用戶體驗平台，政策比 Poppo 更好。加入前可先查看官方政策。回覆我，我會發送詳情。",
+      "after_reply": "+w-app 8615960224799，我會發送我們的政策和你的專屬優惠"
+    }
+  }
+}

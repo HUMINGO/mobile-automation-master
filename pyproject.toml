@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mobile-automation"
+version = "0.1.0"
+description = "A lightweight Python toolkit for Android automation through ADB."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Proprietary"}
+authors = [{name = "Internal Tools Team"}]
+dependencies = ["Pillow>=8,<11", "rapidocr-onnxruntime>=1.4,<2"]
+
+[project.scripts]
+mobile-auto = "mobile_automation.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

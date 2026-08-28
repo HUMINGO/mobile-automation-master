@@ -1,0 +1,22 @@
+{
+  "name": "打开系统设置并截图",
+  "steps": [
+    {
+      "action": "start_app",
+      "package": "com.android.settings"
+    },
+    {
+      "action": "wait",
+      "seconds": 1
+    },
+    {
+      "action": "assert_text",
+      "text": "设置"
+    },
+    {
+      "action": "screenshot",
+      "name": "settings.png"
+    }
+  ]
+}
+
