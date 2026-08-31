@@ -103,6 +103,15 @@ def test_screenshot_uses_sixty_second_timeout_without_retry(tmp_path: Path):
     ]
 
 
+def test_screen_size_prefers_the_override_size():
+    class DisplayClient(AdbClient):
+        def shell(self, *args, timeout=30):
+            assert args == ("wm", "size")
+            return "Physical size: 1080x2400\nOverride size: 720x1600"
+
+    assert DisplayClient().screen_size() == (720, 1600)
+
+
 def test_run_classifies_device_offline_separately(monkeypatch):
     client = AdbClient.__new__(AdbClient)
     client.adb_path = "adb"

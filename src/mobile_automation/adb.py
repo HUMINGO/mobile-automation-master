@@ -3,6 +3,7 @@
 import base64
 from dataclasses import dataclass
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import time
@@ -10,6 +11,7 @@ from typing import List, Optional, Sequence
 
 
 UNICODE_IME = "io.appium.settings/.UnicodeIME"
+SCREEN_SIZE_PATTERN = re.compile(r"(?:Physical|Override) size:\s*(\d+)x(\d+)")
 
 
 def encode_modified_utf7(text: str) -> str:
@@ -189,6 +191,14 @@ class AdbClient:
 
     def shell(self, *args: str, timeout: float = 30) -> str:
         return self.run("shell", *args, timeout=timeout)
+
+    def screen_size(self) -> tuple:
+        """Return the active Android display size, honoring an override size."""
+        matches = SCREEN_SIZE_PATTERN.findall(self.shell("wm", "size"))
+        if not matches:
+            raise AdbError("无法从 adb shell wm size 读取设备屏幕尺寸")
+        width, height = matches[-1]
+        return int(width), int(height)
 
     def tap(self, x: int, y: int) -> None:
         self.shell("input", "tap", str(x), str(y))

@@ -73,6 +73,69 @@ mobile-auto --serial SERIAL run examples/open_settings.json
 mobile-auto screenshot artifacts/screen.png
 ```
 
+### 设备检查器（截图、UI 元素与手动操作）
+
+连接手机后可启动本机网页检查器。页面会同步显示当前手机截图和通过
+UIAutomator 导出的元素列表，包括文本、`resource-id`、`content-desc`、类型、
+边界和中心坐标。选择元素可在截图中高亮，并生成可复制到自动化测试脚本的
+定位示例；实际的点击、输入、滑动由测试脚本执行。
+
+```bash
+# 已安装项目命令入口时
+mobile-auto --serial YOUR_DEVICE_SERIAL inspect
+
+# 或无需重新安装，直接使用源码
+PYTHONPATH=src python -m mobile_automation --serial YOUR_DEVICE_SERIAL inspect
+```
+
+启动后在浏览器打开 <http://127.0.0.1:8765/>。未传 `--serial` 时，仅连接了一台
+状态为 `device` 的设备会自动选中；多设备时必须指定序列号。检查器只绑定
+本机地址，不会开放给局域网。每次刷新会保留最新截图和 XML 到
+`artifacts/inspector/`；按 `Ctrl+C` 停止。
+
+如默认端口已被占用，可指定端口：
+
+```bash
+mobile-auto --serial YOUR_DEVICE_SERIAL inspect --port 8766
+```
+
+### 测试脚本公共方法
+
+根目录的 `utils` 提供测试用例可直接复用的 Android 操作。生成到
+`test_script/` 的用例已自动把项目根目录加入导入路径：
+
+```python
+from utils import (
+    input_text_into_field,
+    save_screenshot,
+    swipe_until_element_visible,
+    wait_for_page_ready,
+)
+
+# 向上滑动，直到元素进入 UI 树；返回的 node 可继续点击。
+node = swipe_until_element_visible(
+    client, resource_id="app:id/submit", max_swipes=8,
+)
+
+# 点击导航元素后，确认页面已切换再继续截图或断言。
+before_navigation = UiTree.capture(client)
+UiTree.click(client, node)
+wait_for_page_ready(client, before_navigation, timeout_seconds=8)
+
+# 保存当前页面截图。相对路径以项目根目录为基准，而非 IDE 的工作目录。
+save_screenshot(client, "artifacts/test_cases/submit_page.png")
+
+# 定位输入框、聚焦、清空当前文本后输入新内容。
+input_text_into_field(
+    client, "test@example.com", resource_id="app:id/email", clear=True,
+)
+```
+
+`swipe_until_element_visible` 支持 `up`、`down`、`left`、`right` 四个方向；
+超过 `max_swipes` 仍找不到元素会抛出 `ElementNotFoundError`，避免测试静默通过。
+默认至少需要有 24 像素宽和高进入屏幕，避免仅露出一条边的元素被误判为可见；
+可通过 `min_visible_pixels` 调整阈值。
+
 ### Play Ocean Hunt 自动点击
 
 先在真机上手动进入 Play Ocean Hunt 游戏页面，并保持手机竖屏。下面的脚本会

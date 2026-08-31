@@ -68,6 +68,11 @@ class UiNode:
         return self.element.attrib.get("enabled", "true") == "true"
 
     @property
+    def visible_to_user(self) -> bool:
+        """Whether UIAutomator explicitly marks this node as visible."""
+        return self.element.attrib.get("visible-to-user", "true") != "false"
+
+    @property
     def bounds(self) -> Optional[Bounds]:
         value = self.element.attrib.get("bounds", "")
         if not value:
@@ -86,6 +91,7 @@ class UiNode:
             "class": self.class_name,
             "clickable": self.clickable,
             "enabled": self.enabled,
+            "visible_to_user": self.visible_to_user,
             "bounds": self.element.attrib.get("bounds", ""),
             "center": list(bounds.center) if bounds else None,
         }
@@ -164,4 +170,3 @@ class UiTree:
         x, y = node.bounds.center
         client.tap(x, y)
         return x, y
-

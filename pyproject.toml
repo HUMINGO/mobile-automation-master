@@ -16,7 +16,9 @@ dependencies = ["Pillow>=8,<11", "rapidocr-onnxruntime>=1.4,<2"]
 mobile-auto = "mobile_automation.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["mobile_automation*", "utils*", "test_script*"]
+exclude = ["tests*", "examples*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

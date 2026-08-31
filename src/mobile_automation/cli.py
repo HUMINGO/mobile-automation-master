@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from .adb import AdbClient, AdbError
+from .inspector import DEFAULT_PORT, run_inspector
 from .runner import TaskRunner
 
 
@@ -21,6 +22,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     shot_parser = subparsers.add_parser("screenshot", help="截取设备屏幕")
     shot_parser.add_argument("output", type=Path)
+
+    inspect_parser = subparsers.add_parser("inspect", help="启动设备截图与 UI 元素检查页面")
+    inspect_parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    inspect_parser.add_argument("--artifacts", type=Path, default=Path("artifacts/inspector"))
     return parser
 
 
@@ -41,6 +46,8 @@ def main(argv=None) -> int:
             print("任务执行完成")
         elif args.command == "screenshot":
             print(client.screenshot(args.output))
+        elif args.command == "inspect":
+            run_inspector(client, args.artifacts, port=args.port)
         return 0
     except (AdbError, OSError, ValueError, KeyError, json.JSONDecodeError, RuntimeError) as exc:
         print("错误：{}".format(exc), file=sys.stderr)
@@ -49,4 +56,3 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
