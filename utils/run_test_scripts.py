@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 from typing import Iterable, List, Optional
+
+from mobile_automation.reporting import (
+    REPORT_CASE_ENV,
+    REPORT_DIR_ENV,
+    load_case_steps,
+)
+from utils.html_report import generate_html_report
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +33,7 @@ class TestScriptResult:
     log_path: str
     return_code: Optional[int] = None
     error: str = ""
+    steps: list = field(default_factory=list)
 
 
 def discover_test_scripts(script_dir: Path, pattern: str = "test_*.py") -> List[Path]:
@@ -60,6 +69,9 @@ def run_test_scripts(
         started = datetime.now()
         log_path = output_dir / "{}.log".format(script.stem)
         command = [sys.executable, "-m", _module_name(script, script_dir)]
+        environment = os.environ.copy()
+        environment[REPORT_DIR_ENV] = str(output_dir.resolve())
+        environment[REPORT_CASE_ENV] = script.stem
         print("开始执行：{}".format(script.name))
         if dry_run:
             message = "预览命令：{}".format(" ".join(command))
@@ -79,6 +91,7 @@ def run_test_scripts(
                 errors="replace",
                 timeout=timeout_seconds,
                 check=False,
+                env=environment,
             )
             output = completed.stdout or ""
             status = "passed" if completed.returncode == 0 else "failed"
@@ -101,6 +114,7 @@ def run_test_scripts(
                 error="超过 {} 秒仍未结束".format(timeout_seconds),
             )
         log_path.write_text(output, encoding="utf-8")
+        result.steps = load_case_steps(output_dir, script.stem)
         results.append(result)
         print("{}：{}".format(script.name, result.status))
         if result.status != "passed" and not continue_on_error:
@@ -138,9 +152,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         json.dumps([asdict(result) for result in results], ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+    html_report_path = generate_html_report(output_dir, results)
     failed = [result for result in results if result.status not in {"passed", "dry_run"}]
-    print("执行完成：{}；报告：{}".format(
-        "成功" if not failed else "存在失败", report_path,
+    print("执行完成：{}；JSON 报告：{}；可视化报告：{}".format(
+        "成功" if not failed else "存在失败", report_path, html_report_path,
     ))
     return 0 if not failed else 1
 

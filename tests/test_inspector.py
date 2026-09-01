@@ -153,3 +153,11 @@ def test_inspector_page_provides_copy_controls_for_both_script_panels():
     assert "function copyToClipboard" in _PAGE
     assert 'id="editAgentButton"' in _PAGE
     assert "toggleAgentScriptEditor" in _PAGE
+
+
+def test_inspector_page_filters_nodes_by_text_description_and_resource_id():
+    assert 'id="nodeSearch"' in _PAGE
+    assert "搜索文字、内容描述或资源 ID" in _PAGE
+    assert "function filteredNodes" in _PAGE
+    assert "n.content_desc,n.resource_id" in _PAGE
+    assert "toLocaleLowerCase" in _PAGE

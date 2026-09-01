@@ -6,7 +6,8 @@ from pathlib import Path
 import time
 from typing import Optional, Union
 
-from mobile_automation import AdbClient, UiNode, UiTree
+from mobile_automation import AdbClient, AdbError, UiNode, UiTree
+from mobile_automation.reporting import record_device_step, record_screenshot
 from datetime import datetime
 
 
@@ -121,6 +122,15 @@ def swipe_until_element_visible(
             print("目标元素已在屏幕中出现：{}；已滑动 {} 次。".format(
                 node.text or node.content_desc or node.resource_id, attempt,
             ))
+            record_device_step(
+                client,
+                "滑动查找元素完成",
+                "目标={}；方向={}；实际滑动 {} 次".format(
+                    node.text or node.content_desc or node.resource_id,
+                    normalized_direction,
+                    attempt,
+                ),
+            )
             return node
         if attempt == max_swipes:
             break
@@ -162,6 +172,7 @@ def save_screenshot(client: AdbClient, output_path: Union[Path, str]) -> Path:
         path = PROJECT_ROOT / path
     saved = client.screenshot(path)
     print("截图已保存：{}".format(saved.resolve()))
+    record_screenshot(saved, detail="测试脚本显式保存的截图")
     return saved
 
 
@@ -187,6 +198,70 @@ def restart_app(
     if wait_seconds:
         time.sleep(wait_seconds)
     print("App 已重启：{}".format(package))
+    record_device_step(client, "重启 App", "包名={}".format(package))
+
+
+def wait_for_element_visible(
+    client: AdbClient,
+    *,
+    text: Optional[str] = None,
+    resource_id: Optional[str] = None,
+    content_desc: Optional[str] = None,
+    timeout_seconds: float = 10.0,
+    poll_seconds: float = 0.4,
+) -> UiNode:
+    """Wait until an exact locator is visible and can safely be clicked.
+
+    This is intended for app startup and asynchronous rendering.  A successful
+    launch command does not mean that the first screen's UI tree is ready yet.
+    Transient UIAutomator dump failures are retried within the timeout.
+    """
+    if not any((text, resource_id, content_desc)):
+        raise ValueError("至少需要提供 text、resource_id 或 content_desc 中的一项")
+    if timeout_seconds <= 0 or poll_seconds <= 0:
+        raise ValueError("timeout_seconds 和 poll_seconds 必须大于 0")
+
+    deadline = time.monotonic() + timeout_seconds
+    last_capture_error: Optional[AdbError] = None
+    while time.monotonic() < deadline:
+        try:
+            tree = UiTree.capture(client)
+        except AdbError as exc:
+            # The app window can be temporarily unavailable immediately after
+            # force-stop/start.  Treat it as not-ready instead of failing fast.
+            last_capture_error = exc
+            time.sleep(poll_seconds)
+            continue
+
+        node = _find_element(
+            tree,
+            text=text,
+            resource_id=resource_id,
+            content_desc=content_desc,
+            viewport_size=_viewport_size(client, tree),
+        )
+        if node is not None and node.enabled:
+            label = content_desc or text or resource_id
+            print("目标元素已就绪：{}".format(label))
+            record_device_step(client, "等待元素可见", "目标={}".format(label))
+            return node
+        time.sleep(poll_seconds)
+
+    locator = ", ".join(
+        "{}={!r}".format(name, value)
+        for name, value in (
+            ("text", text),
+            ("resource_id", resource_id),
+            ("content_desc", content_desc),
+        )
+        if value is not None
+    )
+    detail = "；最近一次 UI 树读取错误：{}".format(last_capture_error) if last_capture_error else ""
+    raise ElementNotFoundError(
+        "{} 秒内未等到可见且可用的元素：{}{}".format(
+            timeout_seconds, locator, detail
+        )
+    )
 
 
 def wait_for_page_ready(
@@ -213,26 +288,35 @@ def wait_for_page_ready(
     target_requested = any((text, resource_id, content_desc))
     deadline = time.monotonic() + timeout_seconds
     page_changed = False
+    last_capture_error: Optional[AdbError] = None
     while time.monotonic() < deadline:
-        tree = UiTree.capture(client)
-        page_changed = page_changed or tree.xml_text != previous_tree.xml_text
-        if page_changed:
-            viewport_size = _viewport_size(client, tree)
-            target = _find_element(
-                tree,
-                text=text,
-                resource_id=resource_id,
-                content_desc=content_desc,
-                viewport_size=viewport_size,
-            ) if target_requested else None
-            if not target_requested or target is not None:
-                if settle_seconds:
-                    time.sleep(settle_seconds)
-                ready_tree = UiTree.capture(client)
-                print("目标页面已就绪。")
-                return ready_tree
+        try:
+            tree = UiTree.capture(client)
+            page_changed = page_changed or tree.xml_text != previous_tree.xml_text
+            if page_changed:
+                viewport_size = _viewport_size(client, tree)
+                target = _find_element(
+                    tree,
+                    text=text,
+                    resource_id=resource_id,
+                    content_desc=content_desc,
+                    viewport_size=viewport_size,
+                ) if target_requested else None
+                if not target_requested or target is not None:
+                    if settle_seconds:
+                        time.sleep(settle_seconds)
+                    ready_tree = UiTree.capture(client)
+                    print("目标页面已就绪。")
+                    record_device_step(client, "等待页面就绪", "已检测到页面切换")
+                    return ready_tree
+        except AdbError as exc:
+            # UIAutomator can temporarily lose the active window while the
+            # target page is animating in.  Continue polling until timeout.
+            last_capture_error = exc
         time.sleep(poll_seconds)
     detail = "且未出现目标元素" if target_requested else ""
+    if last_capture_error is not None:
+        detail += "；最后一次 UI 树读取失败：{}".format(last_capture_error)
     raise PageTransitionTimeout(
         "{} 秒内未检测到页面切换{}".format(timeout_seconds, detail)
     )

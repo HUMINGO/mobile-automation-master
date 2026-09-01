@@ -147,6 +147,44 @@ def test_run_keeps_other_adb_failures_generic(monkeypatch):
     assert type(error.value) is AdbError
 
 
+def test_run_includes_stdout_when_adb_command_fails(monkeypatch):
+    client = AdbClient.__new__(AdbClient)
+    client.adb_path = "adb"
+    client.serial = "serial-1"
+    monkeypatch.setattr(
+        "mobile_automation.adb.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1,
+            stdout=b"uiautomator service is not ready",
+            stderr=b"",
+        ),
+    )
+
+    with pytest.raises(AdbError, match="uiautomator service is not ready"):
+        client.run("shell", "uiautomator", "dump")
+
+
+def test_dump_ui_retries_a_transient_failure(monkeypatch):
+    client = AdbClient.__new__(AdbClient)
+    calls = []
+
+    def shell(*args, timeout=30):
+        calls.append(args)
+        if len(calls) == 1:
+            raise AdbError("window is transitioning")
+        return "<hierarchy />" if args[0] == "cat" else "dumped"
+
+    client.shell = shell
+    monkeypatch.setattr("mobile_automation.adb.time.sleep", lambda _: None)
+
+    assert client.dump_ui(retry_count=2, retry_interval=0) == "<hierarchy />"
+    assert calls == [
+        ("uiautomator", "dump", "/sdcard/window_dump.xml"),
+        ("uiautomator", "dump", "/sdcard/window_dump.xml"),
+        ("cat", "/sdcard/window_dump.xml"),
+    ]
+
+
 @pytest.mark.parametrize(
     "stderr",
     [

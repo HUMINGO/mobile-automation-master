@@ -143,8 +143,10 @@ input_text_into_field(
 ### 批量运行测试用例
 
 批量运行器会按文件名发现 `test_script/test_*.py`，每个用例使用独立进程，
-并将单独日志及 `report.json` 写入 `artifacts/test_runs/时间戳/`。默认失败即停止，
-避免异常页面状态影响后续用例：
+并将单独日志、`report.json` 和可视化的 `report.html` 写入
+`artifacts/test_runs/时间戳/`。`report.html` 会展示每个用例的执行结果、操作步骤、
+步骤截图和原始日志；可直接双击在浏览器中打开。默认失败即停止，避免异常页面状态
+影响后续用例：
 
 ```powershell
 python -m utils.run_test_scripts
@@ -165,6 +167,10 @@ python -m utils.run_test_scripts --pattern "test_settings.py"
 
 可使用 `--timeout 180` 调整单个用例最大执行时长。每个用例沿用其脚本中配置的
 设备序列号；批量运行前请确认全部用例面向同一授权测试设备。
+
+批量运行时，项目的 `UiTree.click`、`client.swipe`、`client.input_text`，以及
+`utils.android_actions` 中的重启、等待、显式截图等公共操作会自动记录到报告中。
+输入操作只记录长度，不会将实际输入内容写入报告。
 
 ### Play Ocean Hunt 自动点击
 

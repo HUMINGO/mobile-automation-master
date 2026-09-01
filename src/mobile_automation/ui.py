@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import xml.etree.ElementTree as ET
 
 from .adb import AdbClient
+from .reporting import record_device_step
 
 
 BOUNDS_PATTERN = re.compile(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")
@@ -162,11 +163,15 @@ class UiTree:
         return candidates[:limit]
 
     @staticmethod
-    def click(client: AdbClient, node: UiNode) -> Tuple[int, int]:
+    def click(client: AdbClient, node: Optional[UiNode]) -> Tuple[int, int]:
+        if node is None:
+            raise ValueError("目标节点为空：请先确认元素已成功定位，再执行点击")
         if not node.enabled:
             raise ValueError("目标节点当前不可用")
         if node.bounds is None:
             raise ValueError("目标节点没有可点击坐标")
         x, y = node.bounds.center
         client.tap(x, y)
+        label = node.text or node.content_desc or node.resource_id or node.class_name
+        record_device_step(client, "点击元素", "{}，坐标 ({}, {})".format(label, x, y))
         return x, y

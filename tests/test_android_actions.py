@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 import utils.android_actions as android_actions
-from mobile_automation import UiTree
+from mobile_automation import AdbError, UiTree
 
 from utils import (
     ElementNotFoundError,
@@ -132,6 +132,26 @@ def test_wait_for_page_ready_waits_for_a_changed_ui_tree(monkeypatch):
     client = ActionClient([TARGET_XML, TARGET_XML])
 
     ready = wait_for_page_ready(client, before, timeout_seconds=1)
+
+    assert ready.find_by_resource_id("continue") is not None
+
+
+def test_wait_for_page_ready_retries_a_transient_ui_capture_error(monkeypatch):
+    monkeypatch.setattr("utils.android_actions.time.sleep", lambda _: None)
+    before = UiTree(NOT_FOUND_XML)
+
+    class FlakyClient(ActionClient):
+        def __init__(self):
+            super().__init__([TARGET_XML])
+            self.capture_count = 0
+
+        def dump_ui(self):
+            self.capture_count += 1
+            if self.capture_count == 2:
+                raise AdbError("window transition")
+            return TARGET_XML
+
+    ready = wait_for_page_ready(FlakyClient(), before, timeout_seconds=1)
 
     assert ready.find_by_resource_id("continue") is not None
 

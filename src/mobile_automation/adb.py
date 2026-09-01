@@ -9,6 +9,8 @@ import subprocess
 import time
 from typing import List, Optional, Sequence
 
+from .reporting import record_device_step
+
 
 UNICODE_IME = "io.appium.settings/.UnicodeIME"
 SCREEN_SIZE_PATTERN = re.compile(r"(?:Physical|Override) size:\s*(\d+)x(\d+)")
@@ -107,7 +109,11 @@ class AdbClient:
             raise AdbError("ADB 命令执行超时: {}".format(" ".join(command))) from exc
 
         if result.returncode != 0:
-            message = result.stderr.decode("utf-8", errors="replace").strip()
+            # Some Android shell tools (including uiautomator on some ROMs)
+            # report useful failures through stdout rather than stderr.
+            stderr = result.stderr.decode("utf-8", errors="replace").strip()
+            stdout = result.stdout.decode("utf-8", errors="replace").strip()
+            message = "\n".join(part for part in (stderr, stdout) if part)
             normalized = message.casefold()
             if "device offline" in normalized:
                 raise DeviceOfflineError(message or "adb: device offline")
@@ -207,11 +213,17 @@ class AdbClient:
         self.shell(
             "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)
         )
+        record_device_step(
+            self,
+            "滑动页面",
+            "({}, {}) → ({}, {})，持续 {} ms".format(x1, y1, x2, y2, duration_ms),
+        )
 
     def input_text(self, text: str) -> None:
         self.prepare_text_input(text)
         value = encode_modified_utf7(text) if not text.isascii() else text
         self.shell("input", "text", escape_adb_input_text(value))
+        record_device_step(self, "输入文本", "输入长度={}（内容已脱敏）".format(len(text)))
 
     def prepare_text_input(self, text: str) -> None:
         """Select UnicodeIME before an input field is focused when needed."""
@@ -269,6 +281,29 @@ class AdbClient:
         )
         return target
 
-    def dump_ui(self) -> str:
-        self.shell("uiautomator", "dump", "/sdcard/window_dump.xml")
-        return self.shell("cat", "/sdcard/window_dump.xml")
+    def dump_ui(self, retry_count: int = 4, retry_interval: float = 0.35) -> str:
+        """Export the current UI hierarchy, retrying transient Android failures.
+
+        ``uiautomator dump`` may fail for a brief period while a native or
+        React Native screen is being attached, animated, or replaced.  The
+        caller should not have to reimplement this short retry for every page
+        transition.
+        """
+        if retry_count <= 0:
+            raise ValueError("retry_count 必须大于 0")
+        if retry_interval < 0:
+            raise ValueError("retry_interval 不能小于 0")
+
+        last_error: Optional[AdbError] = None
+        for attempt in range(1, retry_count + 1):
+            try:
+                self.shell("uiautomator", "dump", "/sdcard/window_dump.xml")
+                return self.shell("cat", "/sdcard/window_dump.xml")
+            except AdbError as exc:
+                last_error = exc
+                if attempt < retry_count:
+                    time.sleep(retry_interval)
+
+        raise AdbError(
+            "导出 UI 树失败，已重试 {} 次：{}".format(retry_count, last_error)
+        ) from last_error
