@@ -7,6 +7,7 @@ from .android_actions import (
     restart_app,
     save_screenshot,
     swipe_until_element_visible,
+    wait_for_element_visible,
     wait_for_page_ready,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "restart_app",
     "save_screenshot",
     "swipe_until_element_visible",
+    "wait_for_element_visible",
     "wait_for_page_ready",
 ]
