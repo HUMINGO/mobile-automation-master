@@ -107,10 +107,14 @@ mobile-auto --serial YOUR_DEVICE_SERIAL inspect --port 8766
 ```python
 from utils import (
     input_text_into_field,
+    restart_app,
     save_screenshot,
     swipe_until_element_visible,
     wait_for_page_ready,
 )
+
+# 重新启动 App；可选地指定启动 Activity。
+restart_app(client, "com.example.app", activity=".MainActivity")
 
 # 向上滑动，直到元素进入 UI 树；返回的 node 可继续点击。
 node = swipe_until_element_visible(
@@ -135,6 +139,32 @@ input_text_into_field(
 超过 `max_swipes` 仍找不到元素会抛出 `ElementNotFoundError`，避免测试静默通过。
 默认至少需要有 24 像素宽和高进入屏幕，避免仅露出一条边的元素被误判为可见；
 可通过 `min_visible_pixels` 调整阈值。
+
+### 批量运行测试用例
+
+批量运行器会按文件名发现 `test_script/test_*.py`，每个用例使用独立进程，
+并将单独日志及 `report.json` 写入 `artifacts/test_runs/时间戳/`。默认失败即停止，
+避免异常页面状态影响后续用例：
+
+```powershell
+python -m utils.run_test_scripts
+```
+
+先仅检查即将执行哪些脚本：
+
+```powershell
+python -m utils.run_test_scripts --dry-run
+```
+
+失败后仍继续执行、或仅运行某一类用例：
+
+```powershell
+python -m utils.run_test_scripts --continue-on-error
+python -m utils.run_test_scripts --pattern "test_settings.py"
+```
+
+可使用 `--timeout 180` 调整单个用例最大执行时长。每个用例沿用其脚本中配置的
+设备序列号；批量运行前请确认全部用例面向同一授权测试设备。
 
 ### Play Ocean Hunt 自动点击
 

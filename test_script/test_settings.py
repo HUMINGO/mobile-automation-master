@@ -13,10 +13,14 @@ from utils.android_actions import (
     generate_timestamps,
     wait_for_page_ready,
     dismiss_known_popups,
+    restart_app,
 )
 
 
 client = AdbClient(serial='9XRWMBROZXFIZD45')
+
+# 重启APP
+restart_app(client, 'com.boloup.pro.beta')
 
 dismiss_known_popups(client)
 

@@ -165,6 +165,30 @@ def save_screenshot(client: AdbClient, output_path: Union[Path, str]) -> Path:
     return saved
 
 
+def restart_app(
+    client: AdbClient,
+    package: str,
+    activity: Optional[str] = None,
+    *,
+    wait_seconds: float = 1.0,
+) -> None:
+    """Stop an app and start it again, then wait for the launch to begin.
+
+    When ``activity`` is omitted, Android launches the package's default
+    launcher activity.  Pass an explicit activity for a deterministic entry
+    point, for example ``".MainActivity"``.
+    """
+    if not package.strip():
+        raise ValueError("package 不能为空")
+    if wait_seconds < 0:
+        raise ValueError("wait_seconds 不能小于 0")
+    client.stop_app(package)
+    client.start_app(package, activity)
+    if wait_seconds:
+        time.sleep(wait_seconds)
+    print("App 已重启：{}".format(package))
+
+
 def wait_for_page_ready(
     client: AdbClient,
     previous_tree: UiTree,

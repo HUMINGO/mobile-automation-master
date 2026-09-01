@@ -7,6 +7,7 @@ from mobile_automation import UiTree
 from utils import (
     ElementNotFoundError,
     input_text_into_field,
+    restart_app,
     save_screenshot,
     swipe_until_element_visible,
     wait_for_page_ready,
@@ -133,3 +134,25 @@ def test_wait_for_page_ready_waits_for_a_changed_ui_tree(monkeypatch):
     ready = wait_for_page_ready(client, before, timeout_seconds=1)
 
     assert ready.find_by_resource_id("continue") is not None
+
+
+def test_restart_app_stops_then_starts_the_requested_package(monkeypatch):
+    monkeypatch.setattr("utils.android_actions.time.sleep", lambda _: None)
+
+    class RestartClient:
+        def __init__(self):
+            self.calls = []
+
+        def stop_app(self, package):
+            self.calls.append(("stop", package))
+
+        def start_app(self, package, activity=None):
+            self.calls.append(("start", package, activity))
+
+    client = RestartClient()
+    restart_app(client, "com.example.app", ".MainActivity")
+
+    assert client.calls == [
+        ("stop", "com.example.app"),
+        ("start", "com.example.app", ".MainActivity"),
+    ]
