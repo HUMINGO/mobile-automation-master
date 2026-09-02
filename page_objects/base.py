@@ -7,6 +7,7 @@ from typing import Optional
 
 from mobile_automation import AdbClient, UiNode, UiTree
 from utils.android_actions import (
+    input_text_into_field,
     swipe_until_element_visible,
     wait_for_element_visible,
     wait_for_page_ready,
@@ -62,6 +63,33 @@ class BasePage:
             self.client,
             max_swipes=max_swipes,
             direction=direction,
+            **element.locator_kwargs()
+        )
+
+    def input_text(
+        self,
+        element: PageElement,
+        value: str,
+        *,
+        clear: bool = True,
+        clear_length: Optional[int] = None,
+        timeout_seconds: float = 12,
+    ) -> UiNode:
+        """Locate ``element``, focus it and enter ``value``.
+
+        ``clear`` defaults to ``True`` because a test case normally needs a
+        deterministic final value.  For masked fields whose previous value is
+        not exposed by the UI tree, pass ``clear_length`` explicitly.
+        """
+        # A page can report its transition before a React Native EditText is
+        # attached.  Wait for the actual field before the helper captures it
+        # again and sends input.
+        self.wait_for(element, timeout_seconds=timeout_seconds)
+        return input_text_into_field(
+            self.client,
+            value,
+            clear=clear,
+            clear_length=clear_length,
             **element.locator_kwargs()
         )
 

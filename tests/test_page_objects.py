@@ -11,6 +11,7 @@ def test_page_objects_keep_locators_with_their_own_pages():
     assert MePage.TASKS.locator_kwargs() == {"content_desc": "Tasks"}
     assert MePage.SETTINGS.locator_kwargs() == {"content_desc": "Settings"}
     assert TaskPage.JOIN_AGENCY.locator_kwargs() == {"content_desc": "Join agency"}
+    assert TaskPage.JOIN_AGENCY_INPUT.locator_kwargs() == {"text": "Enter Agent ID"}
 
 
 def test_page_element_rejects_a_locator_without_any_condition():
@@ -39,3 +40,28 @@ def test_page_click_uses_page_locators_and_waits_for_destination(monkeypatch):
     assert calls[0] == ("wait", {"timeout_seconds": 8, "content_desc": "Me"})
     assert calls[1] == ("click", node)
     assert calls[2] == ("ready", {"timeout_seconds": 8, "content_desc": "Tasks"})
+
+
+def test_page_input_text_delegates_to_shared_input_helper(monkeypatch):
+    import page_objects.base as page_base
+
+    calls = []
+    expected = object()
+    monkeypatch.setattr(page_base, "wait_for_element_visible", lambda client, **kwargs: expected)
+    monkeypatch.setattr(
+        page_base,
+        "input_text_into_field",
+        lambda client, value, **kwargs: (calls.append((client, value, kwargs)) or expected),
+    )
+    client = object()
+    page = HomePage(client)
+    field = PageElement("Agent ID", resource_id="app:id/agent_id")
+
+    actual = page.input_text(field, "test", clear_length=8, timeout_seconds=6)
+
+    assert actual is expected
+    assert calls == [(
+        client,
+        "test",
+        {"clear": True, "clear_length": 8, "resource_id": "app:id/agent_id"},
+    )]

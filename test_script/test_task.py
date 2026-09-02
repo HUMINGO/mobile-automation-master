@@ -25,3 +25,23 @@ def test_enter_task_page():
 
     task_page = TaskPage(client)
     task_page.click(TaskPage.JOIN_AGENCY, timeout_seconds=12)
+
+
+def test_input():
+    restart_app(client, "com.boloup.pro.beta")
+    dismiss_known_popups(client)
+
+    home_page = HomePage(client)
+    home_page.click(HomePage.ME_TAB, destination=MePage.TASKS, timeout_seconds=12)
+
+    me_page = MePage(client)
+    me_page.click(MePage.TASKS, destination=TaskPage.JOIN_AGENCY, timeout_seconds=12)
+
+    task_page = TaskPage(client)
+    task_page.click(TaskPage.JOIN_AGENCY, timeout_seconds=12)
+    task_page.input_text(TaskPage.JOIN_AGENCY_INPUT, "5000103")
+
+
+
+if __name__ == '__main__':
+    test_input()
