@@ -22,16 +22,21 @@ from urllib.parse import urlparse
 from .adb import AdbClient, AdbError
 from .natural_language import (
     ClickPlan,
+    InputPlan,
     ScrollPlan,
     find_planned_node,
+    plan_input_request,
     plan_request,
     plan_scroll_request,
     render_python,
+    render_input_python,
     render_scroll_python,
+    requests_input_text,
     requests_scroll_to_bottom,
     requested_targets,
 )
 from .ui import UiTree
+from utils.android_actions import input_text_into_field
 
 
 DEFAULT_PORT = 8765
@@ -101,11 +106,7 @@ class InspectorSession:
                 raise ValueError("请输入测试需求")
             if self._tree is None:
                 self.refresh()
-            self._last_plan = (
-                plan_scroll_request(request)
-                if requests_scroll_to_bottom(request)
-                else plan_request(request, self._tree)
-            )
+            self._last_plan = self._plan_for_request(request, self._tree)
             self._last_plan_executed = False
             return self._plan_payload(self._last_plan)
 
@@ -115,9 +116,19 @@ class InspectorSession:
         payload["generated_script"] = (
             render_scroll_python(plan, serial)
             if isinstance(plan, ScrollPlan)
+            else render_input_python(plan, serial)
+            if isinstance(plan, InputPlan)
             else render_python(plan, serial)
         )
         return payload
+
+    @staticmethod
+    def _plan_for_request(request: str, tree: UiTree) -> Any:
+        if requests_scroll_to_bottom(request):
+            return plan_scroll_request(request)
+        if requests_input_text(request):
+            return plan_input_request(request, tree)
+        return plan_request(request, tree)
 
     def execute_requirement(
         self, request: str, confirm_sensitive: bool, edited_script: Optional[str] = None,
@@ -127,16 +138,33 @@ class InspectorSession:
             if edited_script is not None:
                 return self._execute_edited_script(request, edited_script, confirm_sensitive)
             self.refresh()
-            plan = (
-                plan_scroll_request(request)
-                if requests_scroll_to_bottom(request)
-                else plan_request(request, self._tree)
-            )
+            plan = self._plan_for_request(request, self._tree)
             if plan.risk_confirmation_required and not confirm_sensitive:
                 raise ValueError("该需求涉及密码、重置或其他高风险操作，请勾选确认后再执行")
             results = []
             page_changed = False
-            if isinstance(plan, ScrollPlan):
+            if isinstance(plan, InputPlan):
+                node = find_planned_node(self._tree, plan)
+                if node is None:
+                    raise ValueError("执行前目标输入框已不存在：{}".format(plan.target))
+                before_xml = self._tree.xml_text
+                # The shared helper focuses the field, clears the currently
+                # visible content and uses the configured Unicode-safe input.
+                input_text_into_field(
+                    self.client,
+                    plan.input_value,
+                    clear=True,
+                    **{plan.locator_kind: plan.locator_value}
+                )
+                time.sleep(0.5)
+                self.refresh()
+                changed = before_xml != self._tree.xml_text
+                page_changed = changed
+                results.extend([
+                    {"order": 1, "target": plan.target, "coordinate": list(node.bounds.center) if node.bounds else [], "page_changed": changed},
+                    {"order": 2, "target": "输入文本（长度 {}，内容已脱敏）".format(len(plan.input_value)), "coordinate": [], "page_changed": changed},
+                ])
+            elif isinstance(plan, ScrollPlan):
                 stable_count = 0
                 for order in range(1, 13):
                     self.refresh()
@@ -216,12 +244,19 @@ class InspectorSession:
         body = []
         for statement in parsed.body:
             if isinstance(statement, ast.ImportFrom):
-                allowed = (
+                mobile_import = (
                     statement.module == "mobile_automation"
                     and all(alias.name in {"AdbClient", "UiTree"} for alias in statement.names)
                 )
-                if not allowed:
-                    raise ValueError("编辑脚本只允许导入 mobile_automation 的 AdbClient、UiTree")
+                action_import = (
+                    statement.module == "utils.android_actions"
+                    and all(alias.name == "input_text_into_field" for alias in statement.names)
+                )
+                if not (mobile_import or action_import):
+                    raise ValueError(
+                        "编辑脚本只允许导入 mobile_automation 的 AdbClient、UiTree，"
+                        "或 utils.android_actions 的 input_text_into_field"
+                    )
                 # Use the already connected, serialised session client rather
                 # than creating a second independent ADB client.
                 continue
@@ -242,6 +277,7 @@ class InspectorSession:
             "__builtins__": safe_builtins,
             "AdbClient": lambda *args, **kwargs: self.client,
             "UiTree": UiTree,
+            "input_text_into_field": input_text_into_field,
         }
         try:
             exec(compile(parsed, "<edited_test_script>", "exec"), namespace, namespace)
@@ -252,11 +288,7 @@ class InspectorSession:
         changed = before_xml != self._tree.xml_text
         plan = self._last_plan
         if plan is None:
-            plan = (
-                plan_scroll_request(request)
-                if requests_scroll_to_bottom(request)
-                else plan_request(request, self._tree)
-            )
+            plan = self._plan_for_request(request, self._tree)
         self._last_plan = plan
         self._last_plan_executed = True
         payload = self._plan_payload(plan)
@@ -292,6 +324,8 @@ class InspectorSession:
             script = (
                 render_scroll_python(self._last_plan, serial)
                 if isinstance(self._last_plan, ScrollPlan)
+                else render_input_python(self._last_plan, serial)
+                if isinstance(self._last_plan, InputPlan)
                 else render_python(self._last_plan, serial)
             )
         else:
@@ -450,17 +484,17 @@ _PAGE = r'''<!doctype html>
 *{box-sizing:border-box}body{margin:0;font:14px system-ui,"Microsoft YaHei",sans-serif;background:#f4f6f8;color:#1f2937}header{position:sticky;top:0;z-index:10;padding:14px 20px;background:#172554;color:white;display:flex;gap:16px;align-items:center;box-shadow:0 2px 6px #0003}button{border:0;border-radius:6px;padding:8px 12px;background:#2563eb;color:white;cursor:pointer}button:disabled{cursor:wait;opacity:.65}.feedback{min-width:132px;font-weight:600}.feedback.success{color:#86efac}.feedback.error{color:#fca5a5}.feedback.pending{color:#fde68a}.grid{display:grid;grid-template-columns:minmax(360px,1fr) minmax(430px,1.25fr);gap:16px;padding:16px;align-items:start}.card{background:white;border-radius:10px;padding:14px;box-shadow:0 1px 4px #0002}.agent{grid-column:1/-1}.agent textarea{display:block;width:100%;min-height:68px;margin:8px 0;padding:8px;font:14px system-ui,"Microsoft YaHei",sans-serif;border:1px solid #cbd5e1;border-radius:6px}.agent input[type=text]{padding:8px;border:1px solid #cbd5e1;border-radius:6px;min-width:260px}.agent label{margin-left:10px}.save-feedback{margin-left:8px;font-weight:600}.screen{position:relative;display:inline-block;max-width:100%;line-height:0}.screen img{display:block;max-width:100%;max-height:80vh;border:1px solid #d1d5db}.box{position:absolute;border:3px solid #f59e0b;background:#f59e0b22;pointer-events:none;display:none}.muted{color:#6b7280}.element-search{width:min(420px,100%);padding:8px;border:1px solid #cbd5e1;border-radius:6px;font:14px system-ui,"Microsoft YaHei",sans-serif}.search-count{margin-left:8px;color:#64748b}.scroll{max-height:46vh;overflow:auto;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%}th,td{padding:7px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}tr{cursor:pointer}tr:hover,tr.selected{background:#eff6ff}.small{font-size:12px;word-break:break-all}#message{min-height:20px;color:#b91c1c}.locator{margin:12px 0;padding:10px;background:#0f172a;border-radius:6px;color:#e2e8f0;white-space:pre-wrap;word-break:break-all;font:12px ui-monospace,Consolas,monospace}.script-editor{min-height:280px!important;resize:vertical}.script-editor:not([readonly]){outline:2px solid #60a5fa;background:#111c35}@media(max-width:900px){.grid{grid-template-columns:1fr}.agent{grid-column:auto}}
 </style><body>
 <header><strong>Android 设备检查器</strong><span id="device">尚未连接</span><span id="refreshState">自动刷新：开启（1 秒）</span><button onclick="refresh(true)" id="refreshButton">立即刷新</button><span id="refreshFeedback" class="feedback" role="status"></span><button onclick="toggleAutoRefresh()" id="autoButton">暂停自动刷新</button></header>
-<main class="grid"><section class="card agent"><h2>自然语言测试 Demo</h2><p class="muted">流程：分析当前 UI → 执行验证 → 确认文件名并写入 test_script。密码、重置等需求必须勾选确认，系统不会猜测或保存密码、验证码。</p><textarea id="requirement" placeholder="输入测试需求，例如：点击 Trade Password 按钮，然后重置密码"></textarea><button onclick="analyseRequirement()">分析当前 UI</button><button id="executeButton" onclick="executeRequirement()">执行已分析步骤</button><button id="copyAgentButton" onclick="copyAgentScript()" disabled>复制生成测试脚本</button><button id="editAgentButton" onclick="toggleAgentScriptEditor()" disabled>编辑脚本</button><span id="executeFeedback" class="save-feedback"></span><label><input id="confirmSensitive" type="checkbox"> 我确认本次高风险测试在授权测试环境中执行</label><p><input id="testCaseName" type="text" placeholder="确认测试用例文件名，如 reset_trade_password"><button id="saveTestCase" onclick="saveTestCase()" disabled>确认写入 test_script</button><span id="saveFeedback" class="save-feedback"></span></p><textarea id="agentPlan" class="locator script-editor" readonly spellcheck="false">尚未分析需求</textarea></section>
+<main class="grid"><section class="card agent"><h2>自然语言测试 Demo</h2><p class="muted">流程：分析当前 UI → 执行验证 → 确认文件名并写入 test_script。密码、重置等需求必须勾选确认，系统不会猜测或保存密码、验证码。</p><textarea id="requirement" placeholder="输入测试需求，例如：点击 Trade Password 按钮；或 定位到 Enter Agent ID 输入框，输入内容：test"></textarea><button onclick="analyseRequirement()">分析当前 UI</button><button id="executeButton" onclick="executeRequirement()">执行已分析步骤</button><button id="copyAgentButton" onclick="copyAgentScript()" disabled>复制生成测试脚本</button><button id="editAgentButton" onclick="toggleAgentScriptEditor()" disabled>编辑脚本</button><span id="executeFeedback" class="save-feedback"></span><label><input id="confirmSensitive" type="checkbox"> 我确认本次高风险测试在授权测试环境中执行</label><p><input id="testCaseName" type="text" placeholder="确认测试用例文件名，如 reset_trade_password"><button id="saveTestCase" onclick="saveTestCase()" disabled>确认写入 test_script</button><span id="saveFeedback" class="save-feedback"></span></p><textarea id="agentPlan" class="locator script-editor" readonly spellcheck="false">尚未分析需求</textarea></section>
 <section class="card"><h2>当前手机界面</h2><p class="muted">点击右侧元素行可在截图中高亮其范围，用于确认定位是否正确。</p><div class="screen"><img id="screen" alt="手机截图"><i id="box" class="box"></i></div><div id="message"></div></section>
 <section class="card"><h2>UI 元素 <span id="count"></span></h2><p class="muted">选择元素后，下方会生成可复制到自动化测试脚本的定位示例。</p><p><input id="nodeSearch" class="element-search" type="search" placeholder="搜索文字、内容描述或资源 ID" oninput="applyNodeSearch()"><button onclick="clearNodeSearch()">清除</button><span id="searchCount" class="search-count"></span></p><button id="copyLocatorButton" onclick="copyLocatorScript()" disabled>复制定位脚本</button><span id="locatorFeedback" class="save-feedback"></span><pre id="locator" class="locator">请选择一个元素</pre><div class="scroll"><table><thead><tr><th>#</th><th>文字 / 描述</th><th>资源 ID / 类</th><th>坐标</th></tr></thead><tbody id="nodes"></tbody></table></div></section></main>
 <script>
-let state={nodes:[],screen_size:[0,0]},selected=null,selectedNode=null,refreshing=false,autoRefresh=true,executing=false,agentScript='',scriptEditing=false;
+let state={nodes:[],screen_size:[0,0]},selected=null,selectedNode=null,refreshing=false,autoRefresh=true,executing=false,agentScript='',scriptEditing=false,scriptEdited=false;
 const msg=t=>document.querySelector('#message').textContent=t||'';
 async function api(url,body){const r=await fetch(url,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||'操作失败');return d}
 async function copyToClipboard(text,feedbackId){const status=document.querySelector('#'+feedbackId);if(!text){status.textContent='没有可复制的脚本。';return}try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const area=document.createElement('textarea');area.value=text;document.body.appendChild(area);area.select();document.execCommand('copy');area.remove()}status.textContent='已复制到剪贴板。'}catch(e){status.textContent='复制失败，请手动复制。'}}
 function setAgentPlan(text){document.querySelector('#agentPlan').value=text}
 function editedAgentScript(){const text=document.querySelector('#agentPlan').value,marker='# 下次可执行脚本',start=text.indexOf(marker);if(start<0)return agentScript;let script=text.slice(start+marker.length).trim();const resultStart=script.indexOf('\n# 执行结果');if(resultStart>=0)script=script.slice(0,resultStart).trim();return script||agentScript}
-function finishScriptEditing(){scriptEditing=false;const editor=document.querySelector('#agentPlan');editor.readOnly=true;agentScript=editedAgentScript();document.querySelector('#editAgentButton').textContent='编辑脚本'}
+function finishScriptEditing(){scriptEditing=false;const editor=document.querySelector('#agentPlan');editor.readOnly=true;const revised=editedAgentScript();scriptEdited=revised!==agentScript;agentScript=revised;document.querySelector('#editAgentButton').textContent='编辑脚本'}
 function toggleAgentScriptEditor(){const editor=document.querySelector('#agentPlan');if(!scriptEditing){scriptEditing=true;editor.readOnly=false;document.querySelector('#editAgentButton').textContent='完成编辑';document.querySelector('#executeFeedback').textContent='正在编辑脚本；编辑完成后可复制或保存。';editor.focus()}else{finishScriptEditing();document.querySelector('#executeFeedback').textContent='脚本编辑完成，可复制或保存。'}}
 function copyAgentScript(){copyToClipboard(editedAgentScript(),'executeFeedback')}
 function copyLocatorScript(){copyToClipboard(document.querySelector('#locator').textContent==='请选择一个元素'?'':document.querySelector('#locator').textContent,'locatorFeedback')}
@@ -468,8 +502,8 @@ function feedback(text,kind){const item=document.querySelector('#refreshFeedback
 function timeText(){return new Date().toLocaleTimeString('zh-CN',{hour12:false})}
 function requirement(){return document.querySelector('#requirement').value.trim()}
 function formatPlan(plan){const steps=plan.steps.map(step=>'第 '+step.order+' 步：'+step.target+'（'+step.status+'）');const locator=plan.locator?'当前定位：'+plan.locator.kind+' = '+plan.locator.value:'当前定位：滑动操作，无需初始可见元素';return ['# 分析结果',...steps,locator,plan.risk_confirmation_required?'风险：需要勾选授权确认后才能执行':'风险：低风险导航操作，可执行','', '# 下次可执行脚本',plan.generated_script].join('\n')}
-async function analyseRequirement(){try{const data=await api('/api/agent/plan',{request:requirement()});if(scriptEditing)finishScriptEditing();agentScript=data.plan.generated_script;document.querySelector('#copyAgentButton').disabled=false;document.querySelector('#editAgentButton').disabled=false;setAgentPlan(formatPlan(data.plan));document.querySelector('#saveTestCase').disabled=true;document.querySelector('#saveFeedback').textContent='请执行并人工确认后再保存。'}catch(e){agentScript='';document.querySelector('#copyAgentButton').disabled=true;document.querySelector('#editAgentButton').disabled=true;setAgentPlan('分析失败：'+e.message)}}
-async function executeRequirement(){const button=document.querySelector('#executeButton'),status=document.querySelector('#executeFeedback'),resumeAutoRefresh=autoRefresh;if(executing)return;if(scriptEditing)finishScriptEditing();const script=editedAgentScript();executing=true;autoRefresh=false;document.querySelector('#refreshState').textContent='自动刷新：执行中已暂停';button.disabled=true;button.textContent='正在执行…';status.textContent='正在执行编辑后的测试脚本，请勿重复点击。';try{const data=await api('/api/agent/execute',{request:requirement(),script:script,confirm_sensitive:document.querySelector('#confirmSensitive').checked});agentScript=data.generated_script;document.querySelector('#copyAgentButton').disabled=false;document.querySelector('#editAgentButton').disabled=false;const result=data.steps.map(step=>'第 '+step.order+' 步已执行 '+step.target+'，页面变化：'+(step.page_changed?'是':'否')).join('\n');setAgentPlan(formatPlan(data.plan)+'\n\n# 执行结果\n'+result+'\n任一步页面变化：'+(data.page_changed?'是':'否（请查看截图或等待页面加载）'));document.querySelector('#saveTestCase').disabled=false;document.querySelector('#saveFeedback').textContent='请确认手机执行结果无误，再输入文件名保存。';status.textContent='执行完成，可以再次执行。';await refresh()}catch(e){status.textContent='执行失败：'+e.message}finally{executing=false;autoRefresh=resumeAutoRefresh;document.querySelector('#refreshState').textContent='自动刷新：'+(autoRefresh?'开启（1 秒）':'已暂停');button.disabled=false;button.textContent='执行已分析步骤'}}
+async function analyseRequirement(){try{const data=await api('/api/agent/plan',{request:requirement()});if(scriptEditing)finishScriptEditing();agentScript=data.plan.generated_script;scriptEdited=false;document.querySelector('#copyAgentButton').disabled=false;document.querySelector('#editAgentButton').disabled=false;setAgentPlan(formatPlan(data.plan));document.querySelector('#saveTestCase').disabled=true;document.querySelector('#saveFeedback').textContent='请执行并人工确认后再保存。'}catch(e){agentScript='';scriptEdited=false;document.querySelector('#copyAgentButton').disabled=true;document.querySelector('#editAgentButton').disabled=true;setAgentPlan('分析失败：'+e.message)}}
+async function executeRequirement(){const button=document.querySelector('#executeButton'),status=document.querySelector('#executeFeedback'),resumeAutoRefresh=autoRefresh;if(executing)return;if(scriptEditing)finishScriptEditing();const script=scriptEdited?editedAgentScript():null;executing=true;autoRefresh=false;document.querySelector('#refreshState').textContent='自动刷新：执行中已暂停';button.disabled=true;button.textContent='正在执行…';status.textContent=script?'正在执行编辑后的测试脚本，请勿重复点击。':'正在执行已分析步骤，请勿重复点击。';try{const data=await api('/api/agent/execute',{request:requirement(),script:script,confirm_sensitive:document.querySelector('#confirmSensitive').checked});agentScript=data.generated_script;scriptEdited=false;document.querySelector('#copyAgentButton').disabled=false;document.querySelector('#editAgentButton').disabled=false;const result=data.steps.map(step=>'第 '+step.order+' 步已执行 '+step.target+'，页面变化：'+(step.page_changed?'是':'否')).join('\n');setAgentPlan(formatPlan(data.plan)+'\n\n# 执行结果\n'+result+'\n任一步页面变化：'+(data.page_changed?'是':'否（请查看截图或等待页面加载）'));document.querySelector('#saveTestCase').disabled=false;document.querySelector('#saveFeedback').textContent='请确认手机执行结果无误，再输入文件名保存。';status.textContent='执行完成，可以再次执行。';await refresh()}catch(e){status.textContent='执行失败：'+e.message}finally{executing=false;autoRefresh=resumeAutoRefresh;document.querySelector('#refreshState').textContent='自动刷新：'+(autoRefresh?'开启（1 秒）':'已暂停');button.disabled=false;button.textContent='执行已分析步骤'}}
 async function saveTestCase(){try{const data=await api('/api/agent/save-test-case',{filename:document.querySelector('#testCaseName').value,script:editedAgentScript()});document.querySelector('#saveFeedback').textContent='写入成功：'+data.path;document.querySelector('#saveTestCase').disabled=true}catch(e){document.querySelector('#saveFeedback').textContent='无法写入：'+e.message}}
 async function refresh(manual=false){const button=document.querySelector('#refreshButton');if(refreshing){if(manual)feedback('刷新正在进行…','pending');return false}refreshing=true;const previous=selectedNode;if(manual){button.disabled=true;button.textContent='刷新中…';feedback('正在读取设备…','pending')}try{msg('正在读取设备…');state=await api('/api/refresh');selected=previous?state.nodes.findIndex(n=>sameElement(n,previous)):null;render();document.querySelector('#screen').src='/api/screenshot?t='+Date.now();msg('已刷新。');if(manual)feedback('刷新成功 · '+timeText(),'success');return true}catch(e){msg(e.message);if(manual)feedback('刷新失败 · '+e.message,'error');return false}finally{refreshing=false;if(manual){button.disabled=false;button.textContent='立即刷新'}}}
 function sameElement(a,b){if(!a||!b)return false;if(a.resource_id&&a.resource_id===b.resource_id)return true;if(a.content_desc&&a.content_desc===b.content_desc&&a.class===b.class)return true;return Boolean(a.text&&a.text===b.text&&a.class===b.class)}

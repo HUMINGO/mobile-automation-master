@@ -12,6 +12,7 @@ PNG = (
 XML = '''<?xml version="1.0"?><hierarchy><node text="登录" resource-id="login" content-desc="" class="android.widget.Button" clickable="true" enabled="true" bounds="[10,20][110,70]" /></hierarchy>'''
 SETTINGS_XML = '''<hierarchy><node text="Settings" resource-id="settings" content-desc="" class="android.widget.Button" clickable="true" enabled="true" bounds="[10,20][110,70]" /></hierarchy>'''
 ACCOUNT_XML = '''<hierarchy><node text="Account" resource-id="account" content-desc="" class="android.widget.Button" clickable="true" enabled="true" bounds="[10,80][110,130]" /></hierarchy>'''
+INPUT_XML = '''<hierarchy><node text="Enter Agent ID" resource-id="agent_id" content-desc="" class="android.widget.EditText" clickable="true" enabled="true" bounds="[10,80][310,130]" /></hierarchy>'''
 
 
 class FakeClient:
@@ -30,6 +31,9 @@ class FakeClient:
 
     def input_text(self, text):
         self.entered = text
+
+    def clear_text(self, length):
+        self.cleared = length
 
     def swipe(self, x1, y1, x2, y2, duration):
         self.swiped = (x1, y1, x2, y2, duration)
@@ -147,12 +151,37 @@ def test_scroll_to_bottom_executes_without_requiring_a_visible_element(tmp_path,
     assert "client.swipe" in result["generated_script"]
 
 
+def test_input_requirement_is_planned_and_executed_without_editing_script(tmp_path, monkeypatch):
+    import mobile_automation.inspector as inspector
+
+    class InputClient(FakeClient):
+        def dump_ui(self):
+            return INPUT_XML
+
+    monkeypatch.setattr(inspector.time, "sleep", lambda _: None)
+    client = InputClient()
+    session = InspectorSession(client, tmp_path)
+    session.refresh()
+
+    plan = session.analyse_requirement("定位到Join agency输入框，输入内容：test")
+    result = session.execute_requirement("定位到Join agency输入框，输入内容：test", False)
+
+    assert plan["locator"] == {"kind": "resource_id", "value": "agent_id"}
+    assert "input_text_into_field" in plan["generated_script"]
+    assert client.entered == "test"
+    assert [step["target"] for step in result["steps"]] == [
+        "Join agency", "输入文本（长度 4，内容已脱敏）",
+    ]
+
+
 def test_inspector_page_provides_copy_controls_for_both_script_panels():
     assert 'id="copyLocatorButton"' in _PAGE
     assert 'id="copyAgentButton"' in _PAGE
     assert "function copyToClipboard" in _PAGE
     assert 'id="editAgentButton"' in _PAGE
     assert "toggleAgentScriptEditor" in _PAGE
+    assert "scriptEdited" in _PAGE
+    assert "输入内容：test" in _PAGE
 
 
 def test_inspector_page_filters_nodes_by_text_description_and_resource_id():

@@ -8,12 +8,15 @@ this deterministic resolver, while keeping the same execution safeguards.
 
 from dataclasses import dataclass
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from .ui import UiNode, UiTree
 
 
-SENSITIVE_WORDS = ("密码", "password", "重置", "reset", "删除", "支付", "transfer")
+SENSITIVE_WORDS = (
+    "密码", "password", "重置", "reset", "删除", "支付", "transfer",
+    "验证码", "verification code",
+)
 # “滑动到页面底部” is naturally understood as upward content scrolling even
 # when the user omits the direction.  Keep the explicit-upward forms too.
 SCROLL_BOTTOM_PATTERN = re.compile(
@@ -22,6 +25,16 @@ SCROLL_BOTTOM_PATTERN = re.compile(
 )
 CLICK_PATTERN = re.compile(
     r"(?:点击|点开|打开|进入)\s*[“\"']?(.*?)[”\"']?(?:按钮|button|控件|入口)?(?=，|,|。|然后|并且|并|$)",
+    re.IGNORECASE,
+)
+INPUT_TARGET_PATTERN = re.compile(
+    r"(?:定位(?:到)?|在)\s*[“\"']?(.*?)[”\"']?\s*(?:输入框|文本框|edittext|input)"
+    r"(?=\s*(?:，|,|。|然后|并且|并|输入|$))",
+    re.IGNORECASE,
+)
+INPUT_VALUE_PATTERN = re.compile(
+    r"输入(?!框)(?:内容|文本|值)?\s*(?:为|是)?\s*[:：]?\s*[“\"']?(.*?)[”\"']?"
+    r"(?=\s*(?:。|$))",
     re.IGNORECASE,
 )
 
@@ -80,6 +93,40 @@ class ScrollPlan:
         }
 
 
+@dataclass(frozen=True)
+class InputPlan:
+    """A resolved input-field operation with an explicitly supplied value."""
+
+    request: str
+    target: str
+    locator_kind: str
+    locator_value: str
+    input_value: str
+    description: str
+    risk_confirmation_required: bool
+
+    def as_dict(self) -> Dict[str, object]:
+        return {
+            "request": self.request,
+            "target": self.target,
+            "locator": {"kind": self.locator_kind, "value": self.locator_value},
+            "input": {
+                "length": len(self.input_value),
+                "sensitive": self.risk_confirmation_required,
+            },
+            "description": self.description,
+            "steps": [
+                {"order": 1, "target": self.target, "status": "当前 UI 输入框已定位"},
+                {"order": 2, "target": "输入文本", "status": "内容长度 {}（{}）".format(
+                    len(self.input_value),
+                    "敏感内容不写入脚本" if self.risk_confirmation_required else "将写入脚本",
+                )},
+            ],
+            "risk_confirmation_required": self.risk_confirmation_required,
+            "generated_script": render_input_python(self),
+        }
+
+
 def _compact(value: str) -> str:
     return re.sub(r"[\s_\-:：]", "", value).casefold()
 
@@ -116,6 +163,23 @@ def requests_scroll_to_bottom(request: str) -> bool:
 def requested_target(request: str) -> Optional[str]:
     targets = requested_targets(request)
     return targets[0] if targets else None
+
+
+def requested_input(request: str) -> Optional[Tuple[str, str]]:
+    """Extract ``(input field description, value)`` from a clear request."""
+    target_match = INPUT_TARGET_PATTERN.search(request.strip())
+    value_match = INPUT_VALUE_PATTERN.search(request.strip())
+    if target_match is None or value_match is None:
+        return None
+    target = _normalise_target(target_match.group(1))
+    value = value_match.group(1).strip(" \t“”\"'")
+    if not target or not value:
+        return None
+    return target, value
+
+
+def requests_input_text(request: str) -> bool:
+    return requested_input(request) is not None
 
 
 def _score(target: str, node: UiNode) -> int:
@@ -196,6 +260,56 @@ def plan_request(request: str, tree: UiTree) -> ClickPlan:
     )
 
 
+def _is_input_node(node: UiNode) -> bool:
+    class_name = node.class_name.casefold()
+    return "edittext" in class_name or "textfield" in class_name
+
+
+def plan_input_request(request: str, tree: UiTree) -> InputPlan:
+    """Resolve a named input field and the text explicitly provided by the user."""
+    parsed = requested_input(request)
+    if parsed is None:
+        raise ValueError("请输入明确需求，例如：定位到 Enter Agent ID 输入框，输入内容：test")
+    target, input_value = parsed
+    editable = [node for node in tree.nodes if _is_input_node(node) and node.enabled]
+    if not editable:
+        raise ValueError("当前 UI 树中未找到可输入的输入框")
+
+    candidates = []
+    for node in editable:
+        try:
+            locator = _locator_for(node)
+        except ValueError:
+            continue
+        candidates.append((_score(target, node), node, locator))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    if candidates and candidates[0][0] >= 70:
+        score, node, locator = candidates[0]
+        if len(candidates) > 1 and candidates[1][0] >= score - 5:
+            raise ValueError("输入框存在多个相近匹配，请补充 placeholder、文字或 resource-id")
+    elif len(editable) == 1:
+        node = editable[0]
+        try:
+            locator = _locator_for(node)
+        except ValueError as exc:
+            raise ValueError("输入框没有可复用的 placeholder、resource-id 或描述") from exc
+    else:
+        raise ValueError("未能根据“{}”确定唯一输入框，请补充输入框 placeholder 或 resource-id".format(target))
+
+    locator_kind, locator_value = locator
+    label = node.text or node.content_desc or node.resource_id or target
+    sensitive = any(word in request.casefold() for word in SENSITIVE_WORDS)
+    return InputPlan(
+        request=request,
+        target=target,
+        locator_kind=locator_kind,
+        locator_value=locator_value,
+        input_value=input_value,
+        description="向输入框 {} 输入文本".format(label),
+        risk_confirmation_required=sensitive,
+    )
+
+
 def plan_scroll_request(request: str) -> ScrollPlan:
     """Plan scrolling even when the next target is off-screen right now."""
     if not requests_scroll_to_bottom(request):
@@ -208,7 +322,7 @@ def plan_scroll_request(request: str) -> ScrollPlan:
     )
 
 
-def find_planned_node(tree: UiTree, plan: ClickPlan) -> Optional[UiNode]:
+def find_planned_node(tree: UiTree, plan: Union[ClickPlan, InputPlan]) -> Optional[UiNode]:
     if plan.locator_kind == "resource_id":
         return tree.find_by_resource_id(plan.locator_value)
     if plan.locator_kind == "text":
@@ -245,6 +359,28 @@ def render_python(plan: ClickPlan, serial: str = "YOUR_DEVICE_SERIAL") -> str:
         ])
     lines.append("# 每一步后均应补充目标页面元素断言。")
     return "\n".join(lines)
+
+
+def render_input_python(plan: InputPlan, serial: str = "YOUR_DEVICE_SERIAL") -> str:
+    locator = "{}={!r}".format(plan.locator_kind, plan.locator_value)
+    if plan.risk_confirmation_required:
+        value_lines = [
+            "# 敏感输入内容不会写入测试脚本；请在授权环境中执行前手动提供。",
+            "INPUT_VALUE = ''",
+            "if not INPUT_VALUE:",
+            "    raise RuntimeError('请先在授权测试环境中提供敏感输入内容')",
+        ]
+    else:
+        value_lines = ["INPUT_VALUE = {!r}".format(plan.input_value)]
+    return "\n".join([
+        "from mobile_automation import AdbClient",
+        "from utils.android_actions import input_text_into_field",
+        "",
+        "client = AdbClient(serial={!r})".format(serial),
+        *value_lines,
+        "input_text_into_field(client, INPUT_VALUE, {}, clear=True)".format(locator),
+        "# 输入后请补充页面结果断言。",
+    ])
 
 
 def render_scroll_python(plan: ScrollPlan, serial: str = "YOUR_DEVICE_SERIAL") -> str:

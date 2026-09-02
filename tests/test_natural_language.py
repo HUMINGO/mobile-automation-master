@@ -1,7 +1,9 @@
 from mobile_automation.natural_language import (
     find_planned_node,
+    plan_input_request,
     plan_request,
     plan_scroll_request,
+    requested_input,
     requested_target,
     requested_targets,
     requests_scroll_to_bottom,
@@ -97,3 +99,33 @@ def test_navigation_context_does_not_create_a_duplicate_click_target():
     assert requested_targets("点击 Task 按钮，进入 Task 页面后，点击 Join agency 按钮") == [
         "Task", "Join agency",
     ]
+
+
+def test_plans_named_input_field_and_generates_input_script():
+    input_tree = UiTree('''<hierarchy>
+        <node text="Enter Agent ID" resource-id="app:id/agent_id" content-desc=""
+              class="android.widget.EditText" clickable="true" enabled="true"
+              bounds="[1,2][30,40]" />
+    </hierarchy>''')
+
+    plan = plan_input_request("定位到Join agency输入框，输入内容：test", input_tree)
+
+    assert requested_input("定位到Join agency输入框，输入内容：test") == ("Join agency", "test")
+    assert plan.locator_kind == "resource_id"
+    assert plan.locator_value == "app:id/agent_id"
+    assert plan.input_value == "test"
+    assert "input_text_into_field" in plan.as_dict()["generated_script"]
+    assert "INPUT_VALUE = 'test'" in plan.as_dict()["generated_script"]
+
+
+def test_sensitive_input_is_confirmed_and_not_written_to_script():
+    input_tree = UiTree('''<hierarchy>
+        <node text="Verification Code" resource-id="app:id/code" content-desc=""
+              class="android.widget.EditText" clickable="true" enabled="true"
+              bounds="[1,2][30,40]" />
+    </hierarchy>''')
+
+    plan = plan_input_request("定位到验证码输入框，输入内容：123456", input_tree)
+
+    assert plan.risk_confirmation_required is True
+    assert "123456" not in plan.as_dict()["generated_script"]
