@@ -34,3 +34,5 @@ def test_html_report_includes_case_steps_and_screenshots(tmp_path: Path):
     assert "点击元素" in content
     assert 'src="steps/test_demo/001_click.png"' in content
     assert "步骤执行完成" in content
+    assert "展开用例" in content
+    assert 'class="case-body" hidden' in content

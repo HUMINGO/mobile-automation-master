@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 import json
@@ -51,74 +52,105 @@ def _module_name(script: Path, script_dir: Path) -> str:
     return "test_script." + ".".join(relative.parts)
 
 
+def discover_test_functions(script: Path) -> List[str]:
+    """Return top-level no-framework test function names in source order."""
+    try:
+        source = script.read_text(encoding="utf-8")
+        module = ast.parse(source, filename=str(script))
+    except (OSError, SyntaxError) as exc:
+        raise ValueError("无法解析测试脚本 {}：{}".format(script, exc)) from exc
+    return [
+        node.name
+        for node in module.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name.startswith("test_")
+    ]
+
+
 def run_test_scripts(
     scripts: Iterable[Path],
     *,
     script_dir: Path = DEFAULT_SCRIPT_DIR,
     output_dir: Path,
     timeout_seconds: float = 120.0,
-    continue_on_error: bool = False,
+    continue_on_error: bool = True,
     dry_run: bool = False,
 ) -> List[TestScriptResult]:
-    """Run each script independently and write one UTF-8 log per script."""
+    """Collect and run every top-level ``test_*`` function in isolation."""
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds 必须大于 0")
     output_dir.mkdir(parents=True, exist_ok=True)
     results: List[TestScriptResult] = []
     for script in scripts:
-        started = datetime.now()
-        log_path = output_dir / "{}.log".format(script.stem)
-        command = [sys.executable, "-m", _module_name(script, script_dir)]
-        environment = os.environ.copy()
-        environment[REPORT_DIR_ENV] = str(output_dir.resolve())
-        environment[REPORT_CASE_ENV] = script.stem
-        print("开始执行：{}".format(script.name))
-        if dry_run:
-            message = "预览命令：{}".format(" ".join(command))
-            log_path.write_text(message + "\n", encoding="utf-8")
-            results.append(TestScriptResult(
-                script.name, "dry_run", 0.0, str(log_path), error=message,
-            ))
-            continue
         try:
-            completed = subprocess.run(
-                command,
-                cwd=PROJECT_ROOT,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=timeout_seconds,
-                check=False,
-                env=environment,
-            )
-            output = completed.stdout or ""
-            status = "passed" if completed.returncode == 0 else "failed"
-            result = TestScriptResult(
-                script.name,
-                status,
-                (datetime.now() - started).total_seconds(),
-                str(log_path),
-                return_code=completed.returncode,
-            )
-        except subprocess.TimeoutExpired as exc:
-            output = exc.stdout or ""
-            if isinstance(output, bytes):
-                output = output.decode("utf-8", errors="replace")
-            result = TestScriptResult(
-                script.name,
-                "timeout",
-                (datetime.now() - started).total_seconds(),
-                str(log_path),
-                error="超过 {} 秒仍未结束".format(timeout_seconds),
-            )
-        log_path.write_text(output, encoding="utf-8")
-        result.steps = load_case_steps(output_dir, script.stem)
-        results.append(result)
-        print("{}：{}".format(script.name, result.status))
-        if result.status != "passed" and not continue_on_error:
-            break
+            test_functions = discover_test_functions(script)
+        except ValueError as exc:
+            results.append(TestScriptResult(script.name, "failed", 0.0, "", error=str(exc)))
+            if not continue_on_error:
+                break
+            continue
+        if not test_functions:
+            results.append(TestScriptResult(
+                script.name, "failed", 0.0, "",
+                error="脚本中未发现顶层 test_* 测试方法",
+            ))
+            if not continue_on_error:
+                break
+            continue
+
+        module_name = _module_name(script, script_dir)
+        for function_name in test_functions:
+            started = datetime.now()
+            case_id = "{}__{}".format(script.stem, function_name)
+            display_name = "{}::{}".format(script.name, function_name)
+            log_path = output_dir / "{}.log".format(case_id)
+            command = [
+                sys.executable, "-m", "utils.execute_test_case", module_name, function_name,
+            ]
+            environment = os.environ.copy()
+            environment[REPORT_DIR_ENV] = str(output_dir.resolve())
+            environment[REPORT_CASE_ENV] = case_id
+            print("开始执行：{}".format(display_name))
+            if dry_run:
+                message = "预览命令：{}".format(" ".join(command))
+                log_path.write_text(message + "\n", encoding="utf-8")
+                results.append(TestScriptResult(
+                    display_name, "dry_run", 0.0, str(log_path), error=message,
+                ))
+                continue
+            try:
+                completed = subprocess.run(
+                    command,
+                    cwd=PROJECT_ROOT,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=timeout_seconds,
+                    check=False,
+                    env=environment,
+                )
+                output = completed.stdout or ""
+                status = "passed" if completed.returncode == 0 else "failed"
+                result = TestScriptResult(
+                    display_name, status, (datetime.now() - started).total_seconds(),
+                    str(log_path), return_code=completed.returncode,
+                )
+            except subprocess.TimeoutExpired as exc:
+                output = exc.stdout or ""
+                if isinstance(output, bytes):
+                    output = output.decode("utf-8", errors="replace")
+                result = TestScriptResult(
+                    display_name, "timeout", (datetime.now() - started).total_seconds(),
+                    str(log_path), error="超过 {} 秒仍未结束".format(timeout_seconds),
+                )
+            log_path.write_text(output, encoding="utf-8")
+            result.steps = load_case_steps(output_dir, case_id)
+            results.append(result)
+            print("{}：{}".format(display_name, result.status))
+            if result.status != "passed" and not continue_on_error:
+                return results
     return results
 
 
@@ -126,7 +158,20 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="批量运行 test_script 下的 Android UI 测试用例")
     parser.add_argument("--pattern", default="test_*.py", help="测试文件匹配规则，默认 test_*.py")
     parser.add_argument("--timeout", type=float, default=120, help="单个用例超时秒数，默认 120")
-    parser.add_argument("--continue-on-error", action="store_true", help="失败后继续执行后续用例")
+    execution_mode = parser.add_mutually_exclusive_group()
+    execution_mode.add_argument(
+        "--continue-on-error",
+        dest="continue_on_error",
+        action="store_true",
+        default=True,
+        help="失败后继续执行后续用例（默认）",
+    )
+    execution_mode.add_argument(
+        "--fail-fast",
+        dest="continue_on_error",
+        action="store_false",
+        help="首个用例失败或超时时立即停止",
+    )
     parser.add_argument("--dry-run", action="store_true", help="仅列出将执行的命令，不操作设备")
     parser.add_argument("--output-dir", type=Path, help="日志目录，默认 artifacts/test_runs/时间戳")
     return parser

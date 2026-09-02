@@ -145,8 +145,7 @@ input_text_into_field(
 批量运行器会按文件名发现 `test_script/test_*.py`，每个用例使用独立进程，
 并将单独日志、`report.json` 和可视化的 `report.html` 写入
 `artifacts/test_runs/时间戳/`。`report.html` 会展示每个用例的执行结果、操作步骤、
-步骤截图和原始日志；可直接双击在浏览器中打开。默认失败即停止，避免异常页面状态
-影响后续用例：
+步骤截图和原始日志；可直接双击在浏览器中打开。默认会在失败后继续执行其余用例：
 
 ```powershell
 python -m utils.run_test_scripts
@@ -158,19 +157,40 @@ python -m utils.run_test_scripts
 python -m utils.run_test_scripts --dry-run
 ```
 
-失败后仍继续执行、或仅运行某一类用例：
+如需在首个失败后立即停止，或仅运行某一类用例：
 
 ```powershell
-python -m utils.run_test_scripts --continue-on-error
+python -m utils.run_test_scripts --fail-fast
 python -m utils.run_test_scripts --pattern "test_settings.py"
 ```
 
 可使用 `--timeout 180` 调整单个用例最大执行时长。每个用例沿用其脚本中配置的
 设备序列号；批量运行前请确认全部用例面向同一授权测试设备。
 
+每个测试脚本中直接定义顶层 `test_` 开头的方法即可，运行器会自动收集并逐个执行，
+无需再写 `if __name__ == "__main__"`。例如：
+
+```python
+def test_setting_page():
+    ...
+
+def test_change_profile():
+    ...
+```
+
+上例会生成两个独立的日志、步骤截图和报告用例条目。
+
 批量运行时，项目的 `UiTree.click`、`client.swipe`、`client.input_text`，以及
 `utils.android_actions` 中的重启、等待、显式截图等公共操作会自动记录到报告中。
 输入操作只记录长度，不会将实际输入内容写入报告。
+
+### 页面元素管理
+
+页面元素集中维护在根目录的 `page_objects/`：一个页面一个文件，例如
+`home_page.py`、`me_page.py`、`task_page.py`、`settings_page.py`。测试用例只引用
+页面对象中的元素，例如 `HomePage.ME_TAB`、`MePage.SETTINGS`，不再在用例内直接
+写 `content_desc`、`resource_id` 或文字定位条件。新增页面时创建对应的页面对象文件；
+元素文案或 resource-id 变更时只需修改该页面文件。
 
 ### Play Ocean Hunt 自动点击
 

@@ -9,7 +9,13 @@ setup(
     description="A lightweight Python toolkit for Android automation through ADB.",
     packages=(
         find_packages("src")
-        + find_packages(".", include=["utils", "utils.*", "test_script", "test_script.*"])
+        + find_packages(
+            ".",
+            include=[
+                "utils", "utils.*", "test_script", "test_script.*",
+                "page_objects", "page_objects.*",
+            ],
+        )
     ),
     package_dir={"mobile_automation": "src/mobile_automation"},
     python_requires=">=3.8",

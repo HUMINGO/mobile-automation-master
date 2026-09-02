@@ -17,7 +17,7 @@ mobile-auto = "mobile_automation.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
-include = ["mobile_automation*", "utils*", "test_script*"]
+include = ["mobile_automation*", "utils*", "test_script*", "page_objects*"]
 exclude = ["tests*", "examples*"]
 
 [tool.pytest.ini_options]

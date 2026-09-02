@@ -1,5 +1,9 @@
 """Project-local Android UI automation test cases.
 
-Run an individual case from the repository root with, for example:
-``python -m test_script.test_settings``.
+Run all cases from the repository root with:
+``python -m utils.run_test_scripts``.
+
+The batch runner automatically collects top-level functions whose name starts
+with ``test_``. Test modules do not need an ``if __name__ == "__main__"``
+block.
 """

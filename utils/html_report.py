@@ -57,13 +57,19 @@ def generate_html_report(output_dir: Path, results: Iterable[Any]) -> Path:
         log_path = Path(item.log_path)
         log = escape(_read_text(log_path))
         error = '<p class="case-error">{}</p>'.format(escape(item.error)) if item.error else ""
+        expanded = item.status in {"failed", "timeout"}
+        expanded_attribute = "" if expanded else " hidden"
+        toggle_label = "收起用例" if expanded else "展开用例"
+        aria_expanded = "true" if expanded else "false"
         case_sections.append(
             """<section class="case {status}">
-<div class="case-title"><h2>{name}</h2><span class="badge {status}">{label}</span></div>
-<p class="meta">耗时：{elapsed:.2f} 秒　退出码：{return_code}</p>{error}
+<div class="case-title"><h2>{name}</h2><div class="case-actions"><span class="badge {status}">{label}</span><button class="case-toggle" type="button" aria-expanded="{aria_expanded}" onclick="toggleCase(this)">{toggle_label}</button></div></div>
+<p class="meta">耗时：{elapsed:.2f} 秒　退出码：{return_code}</p>
+<div class="case-body"{expanded_attribute}>{error}
 <h3>操作步骤与截图（{step_count}）</h3>
 <div class="table-wrap"><table><thead><tr><th>#</th><th>时间</th><th>操作</th><th>截图</th></tr></thead><tbody>{steps}</tbody></table></div>
 <details><summary>查看原始执行日志</summary><pre>{log}</pre></details>
+</div>
 </section>""".format(
                 status=status,
                 name=escape(item.name),
@@ -71,9 +77,12 @@ def generate_html_report(output_dir: Path, results: Iterable[Any]) -> Path:
                 elapsed=item.elapsed_seconds,
                 return_code="-" if item.return_code is None else item.return_code,
                 error=error,
+                aria_expanded=aria_expanded,
+                expanded_attribute=expanded_attribute,
                 step_count=len(steps),
                 steps="\n".join(step_rows),
                 log=log,
+                toggle_label=toggle_label,
             )
         )
 
@@ -85,10 +94,10 @@ def generate_html_report(output_dir: Path, results: Iterable[Any]) -> Path:
 header{{padding:30px max(24px,calc((100vw - 1260px)/2));background:#13295b;color:#fff}} h1{{margin:0 0 16px;font-size:28px}}
 .summary{{display:flex;gap:12px;flex-wrap:wrap}} .summary span{{background:#ffffff1d;padding:9px 14px;border-radius:8px}}
 main{{max-width:1260px;margin:24px auto;padding:0 20px}} .case{{background:#fff;border-radius:12px;padding:22px;margin-bottom:20px;box-shadow:0 2px 12px #152c5b14;border-left:6px solid #7d8ba7}}
-.case.passed{{border-left-color:#1b9c5a}} .case.failed,.case.timeout{{border-left-color:#d94343}} .case-title{{display:flex;align-items:center;justify-content:space-between;gap:12px}} h2{{margin:0;font-size:21px}} h3{{margin:22px 0 10px;font-size:16px}}
+.case.passed{{border-left-color:#1b9c5a}} .case.failed,.case.timeout{{border-left-color:#d94343}} .case-title{{display:flex;align-items:center;justify-content:space-between;gap:12px}} .case-actions{{display:flex;align-items:center;gap:10px;flex-shrink:0}} h2{{margin:0;font-size:21px}} h3{{margin:22px 0 10px;font-size:16px}}
 .badge{{padding:5px 11px;border-radius:999px;background:#dbe3f1;color:#263957;font-weight:700}} .badge.passed{{background:#d9f6e6;color:#08743d}} .badge.failed,.badge.timeout{{background:#ffe0e0;color:#a32222}}
-.meta,.muted{{color:#68758c}} .case-error{{color:#b22323;font-weight:700}} .table-wrap{{overflow:auto;border:1px solid #e1e6ef;border-radius:8px}} table{{border-collapse:collapse;width:100%;min-width:760px}} th,td{{padding:11px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}} th{{background:#f6f8fb;color:#4a5870}} td span{{color:#657188;font-size:13px}} img{{display:block;width:160px;max-height:250px;object-fit:contain;background:#111;border-radius:6px}} .image-error{{color:#b7791f}} details{{margin-top:14px}} summary{{cursor:pointer;color:#285ec5}} pre{{overflow:auto;background:#0f172a;color:#e4ecff;padding:14px;border-radius:8px;white-space:pre-wrap;word-break:break-word}}
-</style></head><body><header><h1>Android UI 自动化测试报告</h1><div class="summary"><span>总用例：{total}</span><span>通过：{passed}</span><span>失败/超时：{failed}</span><span>生成目录：{directory}</span></div></header><main>{cases}</main></body></html>""".format(
+.case-toggle{{border:1px solid #2e65ce;background:#fff;color:#2459bd;border-radius:7px;padding:6px 10px;font:inherit;cursor:pointer}} .case-toggle:hover{{background:#edf3ff}} .meta,.muted{{color:#68758c}} .case-error{{color:#b22323;font-weight:700}} .table-wrap{{overflow:auto;border:1px solid #e1e6ef;border-radius:8px}} table{{border-collapse:collapse;width:100%;min-width:760px}} th,td{{padding:11px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}} th{{background:#f6f8fb;color:#4a5870}} td span{{color:#657188;font-size:13px}} img{{display:block;width:160px;max-height:250px;object-fit:contain;background:#111;border-radius:6px}} .image-error{{color:#b7791f}} details{{margin-top:14px}} summary{{cursor:pointer;color:#285ec5}} pre{{overflow:auto;background:#0f172a;color:#e4ecff;padding:14px;border-radius:8px;white-space:pre-wrap;word-break:break-word}} @media(max-width:640px){{.case-title{{align-items:flex-start;flex-direction:column}} .case-actions{{width:100%;justify-content:space-between}}}}
+</style></head><body><header><h1>Android UI 自动化测试报告</h1><div class="summary"><span>总用例：{total}</span><span>通过：{passed}</span><span>失败/超时：{failed}</span><span>生成目录：{directory}</span></div></header><main>{cases}</main><script>function toggleCase(button){{const body=button.closest('.case').querySelector('.case-body');const opening=body.hidden;body.hidden=!opening;button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'收起用例':'展开用例';}}</script></body></html>""".format(
         total=len(items), passed=passed, failed=failed,
         directory=escape(str(output_dir.resolve())), cases="\n".join(case_sections),
     )
