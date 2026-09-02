@@ -13,7 +13,7 @@ setup(
             ".",
             include=[
                 "utils", "utils.*", "test_script", "test_script.*",
-                "page_objects", "page_objects.*",
+                "page_objects", "page_objects.*", "config", "config.*",
             ],
         )
     ),
