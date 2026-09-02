@@ -37,6 +37,12 @@ INPUT_VALUE_PATTERN = re.compile(
     r"(?=\s*(?:。|$))",
     re.IGNORECASE,
 )
+CLEAR_INPUT_PATTERN = re.compile(
+    r"(?:定位(?:到)?|在)\s*[“\"']?(.*?)[”\"']?\s*(?:输入框|文本框|edittext|input)"
+    r"(?=\s*(?:，|,|。|然后|并且|并|清空|删除|$)).*?"
+    r"(?:清空|清除|删除)\s*(?:输入框(?:中|内)?(?:的)?|其中的?)?(?:文本|内容|文字|值)?",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -127,6 +133,32 @@ class InputPlan:
         }
 
 
+@dataclass(frozen=True)
+class ClearInputPlan:
+    """A resolved operation that clears the value currently in an input."""
+
+    request: str
+    target: str
+    locator_kind: str
+    locator_value: str
+    description: str
+    risk_confirmation_required: bool
+
+    def as_dict(self) -> Dict[str, object]:
+        return {
+            "request": self.request,
+            "target": self.target,
+            "locator": {"kind": self.locator_kind, "value": self.locator_value},
+            "description": self.description,
+            "steps": [
+                {"order": 1, "target": self.target, "status": "当前 UI 输入框已定位"},
+                {"order": 2, "target": "清空输入框", "status": "将删除当前文本"},
+            ],
+            "risk_confirmation_required": self.risk_confirmation_required,
+            "generated_script": render_clear_input_python(self),
+        }
+
+
 def _compact(value: str) -> str:
     return re.sub(r"[\s_\-:：]", "", value).casefold()
 
@@ -180,6 +212,18 @@ def requested_input(request: str) -> Optional[Tuple[str, str]]:
 
 def requests_input_text(request: str) -> bool:
     return requested_input(request) is not None
+
+
+def requested_clear_input(request: str) -> Optional[str]:
+    """Extract a named input field from an explicit clear request."""
+    match = CLEAR_INPUT_PATTERN.search(request.strip())
+    if match is None:
+        return None
+    return _normalise_target(match.group(1))
+
+
+def requests_clear_input(request: str) -> bool:
+    return requested_clear_input(request) is not None
 
 
 def _score(target: str, node: UiNode) -> int:
@@ -265,12 +309,8 @@ def _is_input_node(node: UiNode) -> bool:
     return "edittext" in class_name or "textfield" in class_name
 
 
-def plan_input_request(request: str, tree: UiTree) -> InputPlan:
-    """Resolve a named input field and the text explicitly provided by the user."""
-    parsed = requested_input(request)
-    if parsed is None:
-        raise ValueError("请输入明确需求，例如：定位到 Enter Agent ID 输入框，输入内容：test")
-    target, input_value = parsed
+def _resolve_input_field(target: str, tree: UiTree) -> Tuple[UiNode, Tuple[str, str]]:
+    """Resolve one editable node, allowing an unambiguous single-field form."""
     editable = [node for node in tree.nodes if _is_input_node(node) and node.enabled]
     if not editable:
         raise ValueError("当前 UI 树中未找到可输入的输入框")
@@ -296,6 +336,17 @@ def plan_input_request(request: str, tree: UiTree) -> InputPlan:
     else:
         raise ValueError("未能根据“{}”确定唯一输入框，请补充输入框 placeholder 或 resource-id".format(target))
 
+    return node, locator
+
+
+def plan_input_request(request: str, tree: UiTree) -> InputPlan:
+    """Resolve a named input field and the text explicitly provided by the user."""
+    parsed = requested_input(request)
+    if parsed is None:
+        raise ValueError("请输入明确需求，例如：定位到 Enter Agent ID 输入框，输入内容：test")
+    target, input_value = parsed
+    node, locator = _resolve_input_field(target, tree)
+
     locator_kind, locator_value = locator
     label = node.text or node.content_desc or node.resource_id or target
     sensitive = any(word in request.casefold() for word in SENSITIVE_WORDS)
@@ -307,6 +358,24 @@ def plan_input_request(request: str, tree: UiTree) -> InputPlan:
         input_value=input_value,
         description="向输入框 {} 输入文本".format(label),
         risk_confirmation_required=sensitive,
+    )
+
+
+def plan_clear_input_request(request: str, tree: UiTree) -> ClearInputPlan:
+    """Resolve a named input field for an explicit clear operation."""
+    target = requested_clear_input(request)
+    if target is None:
+        raise ValueError("请输入明确需求，例如：定位到 Enter Agent ID 输入框，清空输入框中的文本")
+    node, locator = _resolve_input_field(target, tree)
+    locator_kind, locator_value = locator
+    label = node.text or node.content_desc or node.resource_id or target
+    return ClearInputPlan(
+        request=request,
+        target=target,
+        locator_kind=locator_kind,
+        locator_value=locator_value,
+        description="清空输入框 {} 的当前文本".format(label),
+        risk_confirmation_required=any(word in request.casefold() for word in SENSITIVE_WORDS),
     )
 
 
@@ -322,7 +391,7 @@ def plan_scroll_request(request: str) -> ScrollPlan:
     )
 
 
-def find_planned_node(tree: UiTree, plan: Union[ClickPlan, InputPlan]) -> Optional[UiNode]:
+def find_planned_node(tree: UiTree, plan: Union[ClickPlan, InputPlan, ClearInputPlan]) -> Optional[UiNode]:
     if plan.locator_kind == "resource_id":
         return tree.find_by_resource_id(plan.locator_value)
     if plan.locator_kind == "text":
@@ -380,6 +449,18 @@ def render_input_python(plan: InputPlan, serial: str = "YOUR_DEVICE_SERIAL") -> 
         *value_lines,
         "input_text_into_field(client, INPUT_VALUE, {}, clear=True)".format(locator),
         "# 输入后请补充页面结果断言。",
+    ])
+
+
+def render_clear_input_python(plan: ClearInputPlan, serial: str = "YOUR_DEVICE_SERIAL") -> str:
+    locator = "{}={!r}".format(plan.locator_kind, plan.locator_value)
+    return "\n".join([
+        "from mobile_automation import AdbClient",
+        "from utils.android_actions import clear_text_in_field",
+        "",
+        "client = AdbClient(serial={!r})".format(serial),
+        "clear_text_in_field(client, {})".format(locator),
+        "# 清空后请补充输入框为空的断言。",
     ])
 
 

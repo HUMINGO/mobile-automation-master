@@ -40,6 +40,7 @@ def test_input():
     task_page = TaskPage(client)
     task_page.click(TaskPage.JOIN_AGENCY, timeout_seconds=12)
     task_page.input_text(TaskPage.JOIN_AGENCY_INPUT, "5000103")
+    task_page.clear_text(TaskPage.JOIN_AGENCY_INPUT)
 
 
 

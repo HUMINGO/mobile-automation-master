@@ -356,6 +356,33 @@ def input_text_into_field(
     return node
 
 
+def clear_text_in_field(
+    client: AdbClient,
+    *,
+    text: Optional[str] = None,
+    resource_id: Optional[str] = None,
+    content_desc: Optional[str] = None,
+    clear_length: Optional[int] = None,
+) -> UiNode:
+    """Locate an input field, focus it and clear its current text.
+
+    ``clear_length`` is useful for masked controls where UIAutomator does not
+    expose the visible value.  Otherwise the current node text is used.
+    """
+    tree = UiTree.capture(client)
+    node = _find_element(
+        tree, text=text, resource_id=resource_id, content_desc=content_desc,
+    )
+    if node is None:
+        raise ElementNotFoundError("当前 UI 树中未找到输入框")
+    UiTree.click(client, node)
+    length = len(node.text) if clear_length is None else clear_length
+    if length < 0:
+        raise ValueError("clear_length 不能小于 0")
+    client.clear_text(length)
+    return node
+
+
 def generate_timestamps():
     # 函数功能：生成当前时间的时间戳字符串
     # 返回值：格式为"年月日_时分秒"的时间戳字符串，例如：20230815_143022

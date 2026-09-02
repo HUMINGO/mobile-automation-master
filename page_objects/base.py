@@ -7,6 +7,7 @@ from typing import Optional
 
 from mobile_automation import AdbClient, UiNode, UiTree
 from utils.android_actions import (
+    clear_text_in_field,
     input_text_into_field,
     swipe_until_element_visible,
     wait_for_element_visible,
@@ -89,6 +90,21 @@ class BasePage:
             self.client,
             value,
             clear=clear,
+            clear_length=clear_length,
+            **element.locator_kwargs()
+        )
+
+    def clear_text(
+        self,
+        element: PageElement,
+        *,
+        clear_length: Optional[int] = None,
+        timeout_seconds: float = 12,
+    ) -> UiNode:
+        """Wait for an input field and clear its current text."""
+        self.wait_for(element, timeout_seconds=timeout_seconds)
+        return clear_text_in_field(
+            self.client,
             clear_length=clear_length,
             **element.locator_kwargs()
         )

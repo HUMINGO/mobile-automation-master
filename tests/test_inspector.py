@@ -174,6 +174,26 @@ def test_input_requirement_is_planned_and_executed_without_editing_script(tmp_pa
     ]
 
 
+def test_clear_input_requirement_is_planned_and_executed_without_editing_script(tmp_path, monkeypatch):
+    import mobile_automation.inspector as inspector
+
+    class InputClient(FakeClient):
+        def dump_ui(self):
+            return INPUT_XML.replace("Enter Agent ID", "filled-value")
+
+    monkeypatch.setattr(inspector.time, "sleep", lambda _: None)
+    client = InputClient()
+    session = InspectorSession(client, tmp_path)
+    session.refresh()
+
+    plan = session.analyse_requirement("定位到Join agency输入框，清空输入框中的文本")
+    result = session.execute_requirement("定位到Join agency输入框，清空输入框中的文本", False)
+
+    assert "clear_text_in_field" in plan["generated_script"]
+    assert client.cleared == len("filled-value")
+    assert [step["target"] for step in result["steps"]] == ["Join agency", "清空输入框"]
+
+
 def test_inspector_page_provides_copy_controls_for_both_script_panels():
     assert 'id="copyLocatorButton"' in _PAGE
     assert 'id="copyAgentButton"' in _PAGE
@@ -182,6 +202,7 @@ def test_inspector_page_provides_copy_controls_for_both_script_panels():
     assert "toggleAgentScriptEditor" in _PAGE
     assert "scriptEdited" in _PAGE
     assert "输入内容：test" in _PAGE
+    assert "清空输入框中的文本" in _PAGE
 
 
 def test_inspector_page_filters_nodes_by_text_description_and_resource_id():

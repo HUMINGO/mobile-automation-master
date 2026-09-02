@@ -1,9 +1,11 @@
 from mobile_automation.natural_language import (
     find_planned_node,
+    plan_clear_input_request,
     plan_input_request,
     plan_request,
     plan_scroll_request,
     requested_input,
+    requested_clear_input,
     requested_target,
     requested_targets,
     requests_scroll_to_bottom,
@@ -129,3 +131,18 @@ def test_sensitive_input_is_confirmed_and_not_written_to_script():
 
     assert plan.risk_confirmation_required is True
     assert "123456" not in plan.as_dict()["generated_script"]
+
+
+def test_plans_clear_of_a_named_input_field_and_generates_reusable_script():
+    input_tree = UiTree('''<hierarchy>
+        <node text="already-filled" resource-id="app:id/agent_id" content-desc=""
+              class="android.widget.EditText" clickable="true" enabled="true"
+              bounds="[1,2][30,40]" />
+    </hierarchy>''')
+    request = "定位到Join Agency输入框，清空输入框中的文本"
+
+    plan = plan_clear_input_request(request, input_tree)
+
+    assert requested_clear_input(request) == "Join Agency"
+    assert plan.locator_kind == "resource_id"
+    assert "clear_text_in_field" in plan.as_dict()["generated_script"]

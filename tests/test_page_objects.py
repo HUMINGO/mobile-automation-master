@@ -65,3 +65,27 @@ def test_page_input_text_delegates_to_shared_input_helper(monkeypatch):
         "test",
         {"clear": True, "clear_length": 8, "resource_id": "app:id/agent_id"},
     )]
+
+
+def test_page_clear_text_delegates_to_shared_clear_helper(monkeypatch):
+    import page_objects.base as page_base
+
+    calls = []
+    expected = object()
+    monkeypatch.setattr(page_base, "wait_for_element_visible", lambda client, **kwargs: expected)
+    monkeypatch.setattr(
+        page_base,
+        "clear_text_in_field",
+        lambda client, **kwargs: (calls.append((client, kwargs)) or expected),
+    )
+    client = object()
+    page = HomePage(client)
+    field = PageElement("Agent ID", resource_id="app:id/agent_id")
+
+    actual = page.clear_text(field, clear_length=8, timeout_seconds=6)
+
+    assert actual is expected
+    assert calls == [(
+        client,
+        {"clear_length": 8, "resource_id": "app:id/agent_id"},
+    )]
