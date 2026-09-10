@@ -6,7 +6,7 @@ the app under test.
 """
 
 # Android device selected by ADB for the current test environment.
-ANDROID_DEVICE_SERIAL = "9XRWMBROZXFIZD45"
+ANDROID_DEVICE_SERIAL = "QGO7HEKVLFUO8DTG"
 
 # Application package restarted before each independent test case.
 APP_PACKAGE = "com.boloup.pro.beta"

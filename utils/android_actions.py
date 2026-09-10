@@ -74,6 +74,63 @@ def _viewport_size(client: AdbClient, tree: UiTree) -> tuple:
     return tree.screen_size
 
 
+def swipe_page(
+    client: AdbClient,
+    *,
+    direction: str = "up",
+    times: int = 1,
+    duration_ms: int = 500,
+    settle_seconds: float = 0.35,
+) -> int:
+    """Swipe the current page a fixed number of times.
+
+    ``direction='up'`` moves page content upward (normally used to reveal
+    content below the viewport); ``'down'`` does the opposite.  The Chinese
+    aliases ``'向上'`` and ``'向下'`` are accepted as well.  The return value is
+    the number of swipes actually issued, which is equal to ``times``.
+    """
+    if times < 0:
+        raise ValueError("times 不能小于 0")
+    if duration_ms <= 0:
+        raise ValueError("duration_ms 必须大于 0")
+    if settle_seconds < 0:
+        raise ValueError("settle_seconds 不能小于 0")
+
+    normalized_direction = {"向上": "up", "向下": "down"}.get(
+        direction.casefold(), direction.casefold(),
+    )
+    if normalized_direction not in {"up", "down"}:
+        raise ValueError("direction 仅支持 up、down、向上、向下")
+    if times == 0:
+        return 0
+
+    get_screen_size = getattr(client, "screen_size", None)
+    if not callable(get_screen_size):
+        raise RuntimeError("客户端不支持获取屏幕尺寸，无法执行滑动")
+    width, height = get_screen_size()
+    if width <= 0 or height <= 0:
+        raise RuntimeError("当前设备没有有效屏幕尺寸，无法执行滑动")
+
+    center_x = width // 2
+    if normalized_direction == "up":
+        coordinates = (center_x, int(height * 0.75), center_x, int(height * 0.30))
+    else:
+        coordinates = (center_x, int(height * 0.30), center_x, int(height * 0.75))
+
+    for _ in range(times):
+        client.swipe(*coordinates, duration_ms=duration_ms)
+        if settle_seconds:
+            time.sleep(settle_seconds)
+
+    print("页面已向{}滑动 {} 次。".format("上" if normalized_direction == "up" else "下", times))
+    record_device_step(
+        client,
+        "页面滑动",
+        "方向={}；次数={}；时长={}ms".format(normalized_direction, times, duration_ms),
+    )
+    return times
+
+
 def swipe_until_element_visible(
     client: AdbClient,
     *,
@@ -389,18 +446,109 @@ def generate_timestamps():
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-def dismiss_known_popups(client) -> bool:
-    """
-    处理升级弹窗
-    :param client:
-    :return:
-    """
-    tree = UiTree.capture(client)
+# def dismiss_known_popups(client) -> bool:
+#     """
+#     处理升级弹窗
+#     :param client:
+#     :return:
+#     """
+#     tree = UiTree.capture(client)
+#
+#     # App Upgrade：只允许忽略，不自动点击 Upgrade。
+#     not_now = tree.find_by_text("Not Now")
+#     if not_now is not None:
+#         UiTree.click(client, not_now)
+#         return True
+#
+#     return False
 
-    # App Upgrade：只允许忽略，不自动点击 Upgrade。
-    not_now = tree.find_by_text("Not Now")
-    if not_now is not None:
-        UiTree.click(client, not_now)
-        return True
+KNOWN_POPUPS = [
+    {
+        "name": "App Upgrade",
+        "locator": {"text": "Not Now"},
+        "action": "click",
+    },
+    {
+        "name": "Android permission",
+        "locator": {"resource_id": "com.android.permissioncontroller:id/permission_allow_button"},
+        "action": "click",
+    },
+]
 
-    return False
+def _popup_click_target(tree: UiTree, node: UiNode) -> Optional[UiNode]:
+    """Return a safe clickable container for a matched popup control.
+
+    Some applications expose a button label as a non-clickable TextView and
+    put the actual click handler on its parent.  Clicking the smallest
+    clickable node covering the label works for both representations.
+    """
+    if node.clickable:
+        return node
+    if node.bounds is None:
+        return None
+    x, y = node.bounds.center
+    candidates = tree.nodes_at(x, y, clickable_only=True)
+    return candidates[0] if candidates else None
+
+
+def dismiss_known_popups(
+    client: AdbClient,
+    *,
+    max_rounds: int = 3,
+    timeout_seconds: float = 4.0,
+    poll_seconds: float = 0.4,
+) -> list[str]:
+    """Wait briefly for and dismiss only explicitly approved popup actions.
+
+    App-launch popups are frequently displayed *after* the first UI dump.
+    Therefore a single immediate capture is unreliable.  This helper polls
+    during the launch window, dismisses one known popup at a time (including
+    stacked dialogs), and never clicks an action that is not in
+    :data:`KNOWN_POPUPS` -- for example, it will click ``Not Now`` but never
+    ``Upgrade``.
+    """
+    if max_rounds < 0:
+        raise ValueError("max_rounds 不能小于 0")
+    if timeout_seconds < 0:
+        raise ValueError("timeout_seconds 不能小于 0")
+    if poll_seconds <= 0:
+        raise ValueError("poll_seconds 必须大于 0")
+
+    dismissed: list[str] = []
+    deadline = time.monotonic() + timeout_seconds
+
+    while len(dismissed) < max_rounds:
+        try:
+            tree = UiTree.capture(client)
+        except AdbError:
+            # The app can be changing windows while it starts.  Keep polling
+            # until the bounded launch window ends instead of failing a case.
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(poll_seconds)
+            continue
+
+        target = None
+        popup_name = ""
+        for rule in KNOWN_POPUPS:
+            node = _find_element(tree, **rule["locator"])
+            if node is None:
+                continue
+            target = _popup_click_target(tree, node)
+            popup_name = rule["name"]
+            break
+
+        if target is not None:
+            UiTree.click(client, target)
+            dismissed.append(popup_name)
+            print("已关闭已知弹窗：{}".format(popup_name))
+            # Give Android a short time to remove this layer before checking
+            # for a second popup.
+            time.sleep(poll_seconds)
+            continue
+
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(poll_seconds)
+
+    return dismissed

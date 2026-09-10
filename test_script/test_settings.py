@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 import sys
 
@@ -19,6 +20,7 @@ from utils.android_actions import (
     generate_timestamps,
     restart_app,
     save_screenshot,
+    swipe_page,
 )
 
 
@@ -27,11 +29,15 @@ client = AdbClient(serial=ANDROID_DEVICE_SERIAL)
 
 def test_setting_page():
     restart_app(client, APP_PACKAGE)
-    dismiss_known_popups(client)
+    # dismiss_known_popups(client)
 
     # 页面元素与定位条件由 page_objects 管理；用例仅描述业务流程。
     home_page = HomePage(client)
+
+    home_page.click(HomePage.UPGRADE_POP, timeout_seconds=DEFAULT_TIMEOUT_SECONDS)
+
     home_page.click(HomePage.ME_TAB, destination=MePage.TASKS, timeout_seconds=DEFAULT_TIMEOUT_SECONDS)
+    swipe_page(client)
 
     me_page = MePage(client)
     me_page.swipe_to(MePage.SETTINGS, max_swipes=MAX_PAGE_SWIPES)
@@ -59,3 +65,6 @@ def test_change_profile():
     setting_page = SettingsPage(client)
     setting_page.click(SettingsPage.MY_PROFILE, timeout_seconds=DEFAULT_TIMEOUT_SECONDS)
 
+
+if __name__ == '__main__':
+    swipe_page(client, direction="down", times=10)
