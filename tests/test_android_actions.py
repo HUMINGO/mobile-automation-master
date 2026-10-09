@@ -9,6 +9,7 @@ from utils import (
     input_text_into_field,
     restart_app,
     save_screenshot,
+    swipe_page,
     swipe_until_element_visible,
     wait_for_page_ready,
 )
@@ -20,6 +21,7 @@ OFFSCREEN_SETTINGS_XML = '''<hierarchy><node text="Settings" resource-id="settin
 VISIBLE_SETTINGS_XML = '''<hierarchy><node text="Settings" resource-id="settings" class="android.widget.Button" clickable="true" bounds="[20,80][80,120]" /></hierarchy>'''
 CLIPPED_SETTINGS_XML = '''<hierarchy><node text="Settings" resource-id="settings" class="android.widget.Button" clickable="true" bounds="[20,195][80,200]" /></hierarchy>'''
 INPUT_XML = '''<hierarchy><node text="old" resource-id="app:id/name" class="android.widget.EditText" clickable="true" bounds="[10,20][90,70]" /></hierarchy>'''
+UPGRADE_POPUP_XML = '''<hierarchy><node class="android.widget.FrameLayout" clickable="false" bounds="[0,0][100,200]"><node class="android.widget.Button" clickable="true" bounds="[10,120][90,170]"><node text="Not Now" class="android.widget.TextView" clickable="false" bounds="[10,120][90,170]" /></node><node text="Upgrade" class="android.widget.Button" clickable="true" bounds="[10,50][90,100]" /></node></hierarchy>'''
 
 
 class ActionClient:
@@ -63,6 +65,26 @@ def test_swipe_until_element_visible_returns_the_element_after_a_swipe(monkeypat
 
     assert node.text == "Continue"
     assert client.swipes == [(50, 150, 50, 60, 350)]
+
+
+def test_swipe_page_supports_direction_and_custom_count(monkeypatch):
+    monkeypatch.setattr("utils.android_actions.time.sleep", lambda _: None)
+    client = ActionClient([NOT_FOUND_XML])
+
+    count = swipe_page(client, direction="向下", times=2, duration_ms=500)
+
+    assert count == 2
+    assert client.swipes == [
+        (50, 60, 50, 150, 500),
+        (50, 60, 50, 150, 500),
+    ]
+
+
+def test_swipe_page_rejects_unsupported_direction():
+    client = ActionClient([NOT_FOUND_XML])
+
+    with pytest.raises(ValueError, match="direction"):
+        swipe_page(client, direction="left")
 
 
 def test_swipe_until_element_visible_reports_a_missing_target(monkeypatch):
@@ -176,3 +198,16 @@ def test_restart_app_stops_then_starts_the_requested_package(monkeypatch):
         ("stop", "com.example.app"),
         ("start", "com.example.app", ".MainActivity"),
     ]
+
+
+def test_dismiss_known_popups_clicks_not_now_container_only():
+    client = ActionClient([UPGRADE_POPUP_XML])
+
+    dismissed = android_actions.dismiss_known_popups(
+        client, max_rounds=1, timeout_seconds=0,
+    )
+
+    assert dismissed == ["App Upgrade"]
+    # ``Not Now`` is non-clickable in this XML.  The helper must click its
+    # enclosing button rather than accidentally choosing ``Upgrade``.
+    assert client.taps == [(50, 145)]

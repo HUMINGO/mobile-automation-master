@@ -77,7 +77,7 @@ mobile-auto screenshot artifacts/screen.png
 
 连接手机后可启动本机网页检查器。页面会同步显示当前手机截图和通过
 UIAutomator 导出的元素列表，包括文本、`resource-id`、`content-desc`、类型、
-边界和中心坐标。选择元素可在截图中高亮，并生成可复制到自动化测试脚本的
+边界和中心坐标。项目另提供截图 OCR 区，识别没有进入无障碍树的屏幕文字；选择 OCR 结果可高亮其范围并生成基于坐标的 `client.tap(x, y)` 示例。OCR 结果适用于游戏、Canvas、视频或图片弹窗，但坐标定位不如语义节点稳定，需在脚本中结合截图或页面状态校验。选择 UI 元素可在截图中高亮，并生成可复制到自动化测试脚本的
 定位示例；实际的点击、输入、滑动由测试脚本执行。
 
 ```bash
@@ -85,7 +85,7 @@ UIAutomator 导出的元素列表，包括文本、`resource-id`、`content-desc
 mobile-auto --serial YOUR_DEVICE_SERIAL inspect
 
 # 或无需重新安装，直接使用源码
-PYTHONPATH=src python -m mobile_automation --serial YOUR_DEVICE_SERIAL inspect
+# PYTHONPATH=src python -m mobile_automation --serial YOUR_DEVICE_SERIAL inspect
 ```
 
 启动后在浏览器打开 <http://127.0.0.1:8765/>。未传 `--serial` 时，仅连接了一台

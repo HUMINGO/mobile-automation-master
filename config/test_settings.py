@@ -9,7 +9,7 @@ the app under test.
 ANDROID_DEVICE_SERIAL = "QGO7HEKVLFUO8DTG"
 
 # Application package restarted before each independent test case.
-APP_PACKAGE = "com.boloup.pro.beta"
+APP_PACKAGE = "com.boloup.go.beta"
 
 # Common timing and interaction settings used by the page-object test cases.
 DEFAULT_TIMEOUT_SECONDS = 12

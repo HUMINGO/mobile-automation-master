@@ -258,6 +258,18 @@ def restart_app(
     record_device_step(client, "重启 App", "包名={}".format(package))
 
 
+def screen_contains_text(client: AdbClient, expected_text: str) -> bool:
+    """Check visible screenshot text with OCR when the accessibility dump fails."""
+    if not expected_text:
+        raise ValueError("expected_text 不能为空")
+    from rapidocr_onnxruntime import RapidOCR
+
+    screenshot = client.run("exec-out", "screencap", "-p", binary=True, timeout=60)
+    items, _ = RapidOCR()(screenshot)
+    visible_text = " ".join(str(item[1]) for item in (items or []))
+    return expected_text.casefold() in visible_text.casefold()
+
+
 def wait_for_element_visible(
     client: AdbClient,
     *,
@@ -335,8 +347,9 @@ def wait_for_page_ready(
     """Wait for a navigation to change UI, optionally asserting a target node.
 
     Capture ``previous_tree`` immediately before the navigation click.  When a
-    destination locator is supplied, the method also requires that locator to
-    be visibly present before returning.
+    destination locator is supplied, its visible presence is sufficient to
+    confirm navigation; some custom-drawn or hybrid screens do not produce a
+    reliable XML diff even after the destination has rendered.
     """
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds 必须大于 0")
@@ -350,7 +363,8 @@ def wait_for_page_ready(
         try:
             tree = UiTree.capture(client)
             page_changed = page_changed or tree.xml_text != previous_tree.xml_text
-            if page_changed:
+            target = None
+            if target_requested:
                 viewport_size = _viewport_size(client, tree)
                 target = _find_element(
                     tree,
@@ -358,14 +372,16 @@ def wait_for_page_ready(
                     resource_id=resource_id,
                     content_desc=content_desc,
                     viewport_size=viewport_size,
-                ) if target_requested else None
-                if not target_requested or target is not None:
-                    if settle_seconds:
-                        time.sleep(settle_seconds)
-                    ready_tree = UiTree.capture(client)
-                    print("目标页面已就绪。")
-                    record_device_step(client, "等待页面就绪", "已检测到页面切换")
-                    return ready_tree
+                )
+            destination_ready = target is not None
+            if destination_ready or (page_changed and not target_requested):
+                if settle_seconds:
+                    time.sleep(settle_seconds)
+                ready_tree = UiTree.capture(client)
+                print("目标页面已就绪。")
+                detail = "目标元素已出现" if target_requested else "已检测到页面切换"
+                record_device_step(client, "等待页面就绪", detail)
+                return ready_tree
         except AdbError as exc:
             # UIAutomator can temporarily lose the active window while the
             # target page is animating in.  Continue polling until timeout.
